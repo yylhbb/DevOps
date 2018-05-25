@@ -1,0 +1,59 @@
+{% extends "BroadviewCOSS/base.html" %}
+{% load static %}
+{% block css %}
+{% endblock css %}
+{% block title %}
+    <title>登陆 - 运维调度平台</title>
+{% endblock title %}
+{% block bodyattrs %}
+{% endblock bodyattrs %}
+{% block context %}
+    <section class="material-half-bg">
+        <div class="cover"></div>
+    </section>
+    <section class="login-content">
+        <div class="logo">
+            <h1>运维调度平台</h1>
+        </div>
+        <div class="login-box">
+            <form class="login-form" action="{% url 'BroadviewCOSS:login' %}" method="post"
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                <h3 class="login-head">
+                    <i class="fa fa-lg fa-fw fa-user"></i>登陆
+                </h3>
+                <div class="form-group">
+                    <label class="control-label">用户名</label>
+                    {{ LoginForm.username }}
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label>
+                    {{ LoginForm.password }}
+                </div>
+                <div class="form-group">
+                    <div class="utility">
+                        <div class="animated-checkbox">
+                            <label>
+                                {{ LoginForm.remember_me }}
+                                <span class="label-text">记住我</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group btn-container">
+                    <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-sign-in fa-lg fa-fw"></i>登陆
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+{% endblock context %}
+{% block js %}
+    <script type="text/javascript">
+        // Login Page Flipbox control
+        $('.login-content [data-toggle="flip"]').click(function () {
+            $('.login-box').toggleClass('flipped');
+            return false;
+        });
+    </script>
+{% endblock %}

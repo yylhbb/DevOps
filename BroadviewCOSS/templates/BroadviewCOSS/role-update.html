@@ -1,0 +1,186 @@
+{% extends "BroadviewCOSS/master.html" %}
+{% load static %}
+{% block app-title %}
+    <div>
+        <h1><i class="fa fa-edit fa-fw"></i> 修改角色</h1>
+        <p></p>
+        <p></p>
+    </div>
+    <ul class="app-breadcrumb breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a>
+        </li>
+        <li class="breadcrumb-item"><i class="fa fa-cog fa-lg"></i> 系统管理</li>
+        <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:role' %}"><i class="fa fa-users fa-lg fa-fw"></i>
+            角色管理</a></li>
+        <li class="breadcrumb-item active"><i class="fa fa-edit fa-lg fa-fw"></i> 修改角色</li>
+    </ul>
+{% endblock app-title %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="tile">
+                <form id="role-update-form" action="{% url 'BroadviewCOSS:update-role' %}" method="post"
+                      enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="tile-body">
+                        <input type="text" value="{{ role.id }}" name="role-id" hidden>
+                        <div class="form-group row">
+                            <label for="role-name" class="control-label col-md-3">
+                                角色名称
+                                <sup><span style="color:red">*</span></sup>
+                            </label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="role-name" name="role-name"
+                                       placeholder="请输入角色名称" value="{{ role.name }}">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="role-permission-update" class="control-label col-md-3">
+                                角色权限
+                                <sup><span style="color:red">*</span></sup>
+                            </label>
+                            <div class="col-md-9">
+                                <select class="form-control" id="role-permission-update" name="role-permission">
+                                    <option value=""></option>
+                                    {% for p in permissions %}
+                                        <option value="{{ p.id }}" {% if role.permission == p.id %}
+                                                selected {% endif %}>{{ p }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="role-menu-update" class="control-label col-md-3">
+                                可访问菜单
+                                <sup><span style="color:red">*</span></sup>
+                            </label>
+                            <div class="col-md-9">
+                                <select class="form-control" id="role-menu-update" name="role-menu"
+                                        multiple="multiple">
+                                    {% for menu in menus %}
+                                        {% if menu.parent == 0 %}
+                                            <option value="{{ menu.id }}" {% if menu.id in role.menu %}
+                                                    selected {% endif %}>{{ menu.name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="role-desc" class="control-label col-md-3">角色描述</label>
+                            <div class="col-md-9">
+                                <textarea class="form-control" id="role-desc" name="role-desc" rows="4"
+                                          placeholder="请输入角色描述">{{ role.description }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tile-footer">
+                        <div class="row">
+                            <div class="col-md-8 col-md-offset-3">
+                                <button class="btn btn-primary" type="button" onclick="roleUpdateSubmit();">
+                                    <i class="fa fa-fw fa-lg fa-check-circle"></i>提交
+                                </button>
+                                <a class="btn btn-secondary" href="#">
+                                    <i class="fa fa-fw fa-lg fa-times-circle"></i>取消
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block selfjs %}
+    <script type="text/javascript">
+        'use strict';
+
+        let role_update_form = $("#role-update-form");
+        let role_permission_update = $("#role-permission-update");
+        let role_menu_update = $("#role-menu-update");
+
+        role_permission_update.select2({
+            placeholder: '请选择',
+            language: 'zh-CN',
+        });
+        role_menu_update.select2({
+            placeholder: '请至少选择一项',
+            language: 'zh-CN',
+            closeOnSelect: false
+        });
+        let role_update_form_validate = role_update_form.validate({
+            ignore: "",
+            rules: {
+                "role-name": {
+                    required: true
+                },
+                "role-permission": {
+                    required: true
+                },
+                "role-menu": {
+                    required: true
+                },
+            },
+            messages: {
+                "role-name": {
+                    required: "请输入角色名称"
+                },
+                "role-permission": {
+                    required: "请选择角色权限"
+                },
+                "role-menu": {
+                    required: "请选择角色的可访问菜单"
+                },
+            },
+            errorElement: "em",
+            errorPlacement: function (error, element) {
+                error.addClass("invalid-feedback");
+                element.parent(".col-md-9").append(error);
+            },
+            highlight: function (element) {
+                if (element.name === "role-permission") {
+                    $(".select2-selection--single").css("border-color", "#dc3545");
+                } else if (element.name === "role-menu") {
+                    $(".select2-selection--multiple").css("border-color", "#dc3545");
+                }
+                $(element).addClass("is-invalid").removeClass("is-valid");
+            },
+            unhighlight: function (element) {
+                if (element.name === "role-permission") {
+                    $(".select2-selection--single").css("border-color", "#28a745");
+                } else if (element.name === "role-menu") {
+                    $(".select2-selection--multiple").css("border-color", "#28a745");
+                }
+                $(element).addClass("is-valid").removeClass("is-invalid");
+            }
+        });
+
+        role_permission_update.change(function () {
+            $(this).valid();
+        });
+        role_menu_update.change(function () {
+            $(this).valid();
+        });
+
+        function roleUpdateSubmit() {
+            if (role_update_form_validate.form()){
+                let data = JSON.stringify(role_update_form.serializeObject());
+                $.ajax({
+                    url: "{% url "BroadviewCOSS:update-role" %}",
+                    type: "post",
+                    data: data,
+                    success: function (data) {
+                        if (data.result) {
+                            successNotify(data.message)
+                        } else{
+                            dangerNotify(data.message)
+                        }
+                    },
+                    error: function (data) {
+                        console.log(data);
+                    }
+                });
+            }
+        }
+    </script>
+{% endblock selfjs %}

@@ -1,0 +1,66 @@
+{% extends "BroadviewCOSS/master.html" %}
+{% load static %}
+{% block app-title %}
+    <div>
+        <h1><i class="fa fa-users fa-fw"></i> 角色管理</h1>
+        <p></p>
+        <p></p>
+    </div>
+    <ul class="app-breadcrumb breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a></li>
+        <li class="breadcrumb-item"><i class="fa fa-cog fa-lg fa-fw"></i> 系统管理</li>
+        <li class="breadcrumb-item active"><i class="fa fa-users fa-lg fa-fw"></i> 角色管理</li>
+    </ul>
+{% endblock app-title %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="tile">
+                <div class="tile-body">
+                    <p>
+                        <a href="{% url 'BroadviewCOSS:add-role' %}">
+                            <button class="btn btn-outline-primary">
+                                <i class="fa fa-plus-circle fa-fw"></i>添加
+                            </button>
+                        </a>
+                    </p>
+                </div>
+                <table class="table table-hover table-bordered content-table">
+                    <thead>
+                        <tr>
+                            <th>角色名称</th>
+                            <th>角色权限</th>
+                            <th>可访问菜单</th>
+                            <th>角色描述</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for id, value in roles.items %}
+                            <tr>
+                                <td>{{ value.name }}</td>
+                                <td>{{ value.permission }}</td>
+                                <td>{{ value.menu }}</td>
+                                <td>{{ value.description }}</td>
+                                <td>
+                                    <a href="{% url "BroadviewCOSS:update-role" %}?role-id={{ id }}">
+                                        <button class="btn btn-outline-success btn-sm">
+                                            <i class="fa fa-edit fa-fw"></i>修改
+                                        </button>
+                                    </a>
+                                    <a href="#">
+                                        <button class="btn btn-outline-danger btn-sm">
+                                            <i class="fa fa-close fa-fw"></i>删除
+                                        </button>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block selfjs %}
+{% endblock selfjs %}
