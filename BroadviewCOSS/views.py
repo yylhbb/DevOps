@@ -55,7 +55,7 @@ def login(request):
 
 def index(request):
     menus = models.Menu.objects.all()
-    return render(request, 'BroadviewCOSS/index.html', {'menus': menus, 'active': 'user'})
+    return render(request, 'BroadviewCOSS/index.html', {'menus': menus, 'active': 'index'})
 
 
 def mainframe(request):
@@ -72,7 +72,50 @@ def task(request):
 
 
 def user(request):
-    return render(request, 'BroadviewCOSS/user.html', {})
+    menus = models.Menu.objects.all()
+    permissions = models.Permission.objects.all()
+
+    return_value = {
+        'menus': menus,
+        'permissions': permissions,
+        'active': 'user'
+    }
+    return render(request, 'BroadviewCOSS/user.html', return_value)
+
+def show_user(request):
+    if request.method == 'POST':
+        print(request)
+        user_count = models.User.objects.all().count()
+
+        draw = int(request.POST.get('draw'))
+        start = int(request.POST.get('start'))  # 从多少行开始
+        length = int(request.POST.get('length'))  # 显示多少条数据
+
+        end = start + length
+        user_list = models.User.objects.all().values_list(
+            'id',
+            'username',
+            'userrole',
+            'last_login',
+            'is_active'
+        ).order_by('id')[start:end]
+
+        _filter = user_count
+        all_lists = map(list, user_list)
+
+        all_list = []
+        for u in all_lists:
+            u[2] = u[2].userrole.role.name
+            all_list.append(u)
+
+        data = {
+            'draw': draw,
+            'recordsTotal': user_count,
+            'recordsFilter': _filter,
+            'data': all_list
+        }
+
+        return HttpResponse(json.dumps(data))
 
 
 def role(request):
@@ -107,12 +150,7 @@ def role(request):
 
 def role_name_validate(request):
     role_name = request.POST.get('role_name')
-    try:
-        models.Role.objects.get(name=role_name)
-    except models.Role.DoesNotExist:
-        is_validate = True
-    else:
-        is_validate = False
+    is_validate = models.Role.objects.filter(name=role_name).exists()
 
     return HttpResponse(json.dumps(is_validate))
 
@@ -169,6 +207,7 @@ def role_add(request):
         return render(request, 'BroadviewCOSS/role-add.html', return_value)
 
 
+@transaction.atomic()
 def role_update(request):
     menus = models.Menu.objects.all()
     permissions = models.Permission.objects.all()
@@ -185,23 +224,24 @@ def role_update(request):
             with transaction.atomic():
                 r = models.Role.objects.get(id=role_id)
                 p = models.Permission.objects.get(id=role_permission_id)
+
                 r.name = role_name
                 r.description = role_desc
-                r.rolepermission.permission = p
-                r.rolepermission.save()
                 r.save()
 
+                r.rolepermission.permission = p
+                r.rolepermission.save()
+
+                r.menurole_set.all().delete()
                 for menu_id in role_menu_ids:
                     menu = models.Menu.objects.get(pk=menu_id)
-                    menu_role = models.MenuRole.objects.filter(role=r)
-                    menu_role.update(menu=menu)
+                    r.menurole_set.create(menu=menu)
 
                 context = {'result': True, 'message': '角色修改成功！'}
-                return HttpResponse(json.dumps(context), content_type='application/json')
         except (ValueError, IntegrityError, AttributeError) as e:
-            print(e)
             context = {'result': False, 'message': '角色修改失败！'}
-            return HttpResponse(json.dumps(context), content_type='application/json')
+
+        return HttpResponse(json.dumps(context))
     else:
         role_id = request.GET.get('role-id')
         r = models.Role.objects.get(id=role_id)
@@ -228,3 +268,21 @@ def role_update(request):
             'active': 'role'
         }
         return render(request, 'BroadviewCOSS/role-update.html', return_value)
+
+
+@transaction.atomic()
+def role_delete(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        role_id = data['role-id']
+
+        try:
+            with transaction.atomic():
+                models.Role.objects.get(id=role_id).delete()
+                context = {'result': True, 'message': '角色删除成功！'}
+        except (ValueError, IntegrityError, AttributeError) as e:
+            context = {'result': False, 'message': '角色修改失败！'}
+
+        return HttpResponse(json.dumps(context))
+    else:
+        return HttpResponseRedirect("/role")

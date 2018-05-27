@@ -10,8 +10,10 @@ urlpatterns = [
     path('task/', views.task, name='task'),
     path('category/', views.category, name='category'),
     path('user/', views.user, name='user'),
+    path('user/show', views.show_user, name='show-user'),
     path('role/', views.role, name='role'),
     path('role/add/', views.role_add, name='add-role'),
     path('role/update/', views.role_update, name='update-role'),
+    path('role/delete', views.role_delete, name='delete-role'),
     path('role/validate', views.role_name_validate, name='role-name-validate'),
 ]

@@ -9,6 +9,7 @@
       <w>csrfmiddlewaretoken</w>
       <w>csrftoken</w>
       <w>datatables</w>
+      <w>defs</w>
       <w>dropdown</w>
       <w>ffields</w>
       <w>fwidgets</w>
@@ -19,10 +20,12 @@
       <w>signin</w>
       <w>skiner</w>
       <w>slimscroll</w>
+      <w>sweetalert</w>
       <w>szfesc</w>
       <w>treeview</w>
       <w>ucheck</w>
       <w>unhighlight</w>
+      <w>userrole</w>
     </words>
   </dictionary>
 </component>

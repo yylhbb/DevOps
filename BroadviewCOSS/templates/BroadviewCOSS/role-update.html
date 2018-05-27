@@ -80,7 +80,7 @@
                                 <button class="btn btn-primary" type="button" onclick="roleUpdateSubmit();">
                                     <i class="fa fa-fw fa-lg fa-check-circle"></i>提交
                                 </button>
-                                <a class="btn btn-secondary" href="#">
+                                <a class="btn btn-secondary" href="{% url "BroadviewCOSS:role" %}">
                                     <i class="fa fa-fw fa-lg fa-times-circle"></i>取消
                                 </a>
                             </div>
@@ -102,11 +102,13 @@
         role_permission_update.select2({
             placeholder: '请选择',
             language: 'zh-CN',
+            width: "100%"
         });
         role_menu_update.select2({
             placeholder: '请至少选择一项',
             language: 'zh-CN',
-            closeOnSelect: false
+            closeOnSelect: false,
+            width: "100%"
         });
         let role_update_form_validate = role_update_form.validate({
             ignore: "",
@@ -170,11 +172,16 @@
                     type: "post",
                     data: data,
                     success: function (data) {
-                        if (data.result) {
-                            successNotify(data.message)
-                        } else{
-                            dangerNotify(data.message)
-                        }
+                        let dataObj = JSON.parse(data);
+                        swal({
+                            title: dataObj.message,
+                            type: dataObj.result ? "success":"error",
+                            confirmButtonText: "确认",
+                        }, function () {
+                            if (this.type === "success") {
+                                window.location.href = "{% url "BroadviewCOSS:role" %}"
+                            }
+                        });
                     },
                     error: function (data) {
                         console.log(data);
