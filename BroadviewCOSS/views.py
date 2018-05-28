@@ -1,10 +1,12 @@
+import datetime
+
 from django.forms import widgets as fwidgets
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.db import transaction, IntegrityError
 from django import forms
 
-from BroadviewCOSS import models
+from BroadviewCOSS import models, urls
 
 import json
 
@@ -45,7 +47,7 @@ def login(request):
 
             models.User.objects.filter(username=username, password=password)
 
-            return HttpResponseRedirect('/index')
+            return HttpResponseRedirect('/')
         else:
             return HttpResponseRedirect('/login')
     else:
@@ -75,16 +77,30 @@ def user(request):
     menus = models.Menu.objects.all()
     permissions = models.Permission.objects.all()
 
+    user_list = models.User.objects.all()
+
+    user_dict = {}
+    for u in user_list:
+        ud = user_dict[u.id] = {}
+        ud['username'] = u.username
+        ud['userrole'] = u.userrole.role.name
+        ud['is_active'] = u.is_active
+
+        if isinstance(u.last_login, datetime.datetime):
+            ud['last_login'] = u.last_login.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            ud['last_login'] = ""
+
     return_value = {
         'menus': menus,
         'permissions': permissions,
+        'users': user_dict,
         'active': 'user'
     }
     return render(request, 'BroadviewCOSS/user.html', return_value)
 
 def show_user(request):
     if request.method == 'POST':
-        print(request)
         user_count = models.User.objects.all().count()
 
         draw = int(request.POST.get('draw'))
@@ -105,7 +121,9 @@ def show_user(request):
 
         all_list = []
         for u in all_lists:
-            u[2] = u[2].userrole.role.name
+            u[2] = models.UserRole.objects.get(id=u[2]).role.name
+            if isinstance(u[3], datetime.datetime):
+                u[3] = u[3].strftime('%Y-%m-%d %H:%M:%S')
             all_list.append(u)
 
         data = {
@@ -117,7 +135,50 @@ def show_user(request):
 
         return HttpResponse(json.dumps(data))
 
+def user_name_validate(request):
+    username = request.POST.get('username')
+    is_validate = models.User.objects.filter(username=username).exists()
 
+    return HttpResponse(json.dumps(is_validate))
+
+def user_add(request):
+    menus = models.Menu.objects.all()
+    permissions = models.Permission.objects.all()
+    roles = models.Role.objects.all()
+
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data['username']
+        role_id = data['user-role']
+        password = data['password']
+
+        try:
+            with transaction.atomic():
+                r = models.Role.objects.get(id=role_id)
+                u = models.User.objects.create(
+                    username=username,
+                    password=password,
+                    is_active=True
+                )
+                u.userrole = models.UserRole.objects.create(
+                    user=u,
+                    role=r
+                )
+                context = {'result': True, 'message': '用户添加成功'}
+        except (ValueError, IntegrityError, Exception):
+            context = {'result': False, 'message': '用户添加失败'}
+
+        return HttpResponse(json.dumps(context))
+    else:
+        return_value = {
+            'menus': menus,
+            'permissions': permissions,
+            'roles': roles,
+            'active': 'user'
+        }
+        return render(request, 'BroadviewCOSS/user-add.html', return_value)
+
+@transaction.atomic()
 def role(request):
     role_list = models.Role.objects.all()
 
@@ -185,7 +246,7 @@ def role_add(request):
             result = False
 
         if result:
-            request.session['role-result'] = {'value': True, 'message': '角色添加成功！'}
+            request.session['role-result'] = {'value': True, 'message': '角色添加成功'}
             return HttpResponseRedirect('/role')
         else:
             return_value = {
@@ -194,7 +255,7 @@ def role_add(request):
                 'active': 'role',
                 'result': {
                     'value': False,
-                    'message': '角色添加失败！'
+                    'message': '角色添加失败'
                 }
             }
             return render(request, 'BroadviewCOSS/role-add.html', return_value)
@@ -237,9 +298,9 @@ def role_update(request):
                     menu = models.Menu.objects.get(pk=menu_id)
                     r.menurole_set.create(menu=menu)
 
-                context = {'result': True, 'message': '角色修改成功！'}
+                context = {'result': True, 'message': '角色修改成功'}
         except (ValueError, IntegrityError, AttributeError) as e:
-            context = {'result': False, 'message': '角色修改失败！'}
+            context = {'result': False, 'message': '角色修改失败'}
 
         return HttpResponse(json.dumps(context))
     else:
@@ -279,9 +340,9 @@ def role_delete(request):
         try:
             with transaction.atomic():
                 models.Role.objects.get(id=role_id).delete()
-                context = {'result': True, 'message': '角色删除成功！'}
+                context = {'result': True, 'message': '角色删除成功'}
         except (ValueError, IntegrityError, AttributeError) as e:
-            context = {'result': False, 'message': '角色修改失败！'}
+            context = {'result': False, 'message': '角色修改失败'}
 
         return HttpResponse(json.dumps(context))
     else:

@@ -1,0 +1,191 @@
+{% extends "BroadviewCOSS/master.html" %}
+{% load static %}
+{% block app-title %}
+    <div>
+        <h1><i class="fa fa-users fa-fw"></i> 添加用户</h1>
+    </div>
+    <ul class="app-breadcrumb breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a>
+        </li>
+        <li class="breadcrumb-item"><i class="fa fa-cog fa-lg fa-fw"></i> 系统管理</li>
+        <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:user' %}"><i class="fa fa-users fa-lg fa-fw"></i>
+            用户管理</a></li>
+        <li class="breadcrumb-item active"><i class="fa fa-user-plus fa-lg fa-fw"></i> 添加用户</li>
+    </ul>
+{% endblock app-title %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="tile">
+                <form id="user-add-form" action="{% url 'BroadviewCOSS:add-user' %}" method="post"
+                      enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="tile-body">
+                        <div class="form-group row">
+                            <label for="username" class="control-label col-md-3">
+                                用户名
+                                <sup><span style="color:red">*</span></sup>
+                            </label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="username" name="username"
+                                       placeholder="请输入用户名">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="password" class="control-label col-md-3">
+                                密码
+                                <sup><span style="color:red">*</span></sup>
+                            </label>
+                            <div class="col-md-9">
+                                <input type="password" class="form-control" id="password" name="password"
+                                       placeholder="请输入密码">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="confirm-password" class="control-label col-md-3">
+                                确认密码
+                                <sup><span style="color:red">*</span></sup>
+                            </label>
+                            <div class="col-md-9">
+                                <input type="password" class="form-control" id="confirm-password"
+                                       name="confirm-password"
+                                       placeholder="请再次输入密码">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="user-role-add" class="control-label col-md-3">
+                                所属角色
+                                <sup><span style="color:red">*</span></sup>
+                            </label>
+                            <div class="col-md-9">
+                                <select class="form-control" id="user-role-add" name="user-role">
+                                    <option value=""></option>
+                                    {% for r in roles %}
+                                        <option value="{{ r.id }}">{{ r.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tile-footer">
+                        <div class="row">
+                            <div class="col-md-8 col-md-offset-3">
+                                <button class="btn btn-primary" type="button" onclick="userAddSubmit();">
+                                    <i class="fa fa-fw fa-lg fa-check-circle"></i>提交
+                                </button>
+                                <a class="btn btn-secondary" href="{% url "BroadviewCOSS:user" %}">
+                                    <i class="fa fa-fw fa-lg fa-times-circle"></i>取消
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block selfjs %}
+    <script type="text/javascript">
+        'use strict';
+
+        let user_add_form = $('#user-add-form');
+        let user_role_add = $('#user-role-add');
+
+        user_role_add.select2({
+            placeholder: '请选择',
+            language: 'zh-CN',
+            width: "100%"
+        });
+
+        let user_add_form_validate = user_add_form.validate({
+            ignore: "",
+            rules: {
+                "username": {
+                    required: true,
+                    remote: {
+                        url: "{% url "BroadviewCOSS:user-name-validate" %}",
+                        type: "POST",
+                        data: {
+                            "username": function () {
+                                return $("#username").val();
+                            }
+                        }
+                    }
+                },
+                "password": {
+                    required: true
+                },
+                "confirm-password": {
+                    required: true,
+                    equalTo: "#password"
+                },
+                "user-role-add": {
+                    required: true
+                }
+            },
+            messages: {
+                "username": {
+                    required: "请输入用户名",
+                    remote: "用户名已存在，请重新输入"
+                },
+                "password": {
+                    required: "请输入密码"
+                },
+                "confirm-password": {
+                    required: "请再次输入密码",
+                    equalTo: "两次密码不一致"
+                },
+                "user-role-add": {
+                    required: "请选择用户所属角色"
+                }
+            },
+            errorElement: "em",
+            errorPlacement: function (error, element) {
+                error.addClass("invalid-feedback");
+                element.parent(".col-md-9").append(error);
+            },
+            highlight: function (element) {
+                if (element.name === "user-role") {
+                    $(".select2-selection--single").css("border-color", "#dc3545");
+                }
+                $(element).addClass("is-invalid").removeClass("is-valid");
+            },
+            unhighlight: function (element) {
+                if (element.name === "user-role") {
+                    $(".select2-selection--single").css("border-color", "#28a745");
+                }
+                $(element).addClass("is-valid").removeClass("is-invalid");
+            }
+        });
+
+        user_role_add.change(function () {
+            $(this).valid();
+        });
+
+        function userAddSubmit() {
+            if (user_add_form_validate.form()) {
+                let data = JSON.stringify(user_add_form.serializeObject());
+                $.ajax({
+                    url: "{% url "BroadviewCOSS:add-user" %}",
+                    type: "POST",
+                    data: data,
+                    success: function (data) {
+                        let dataObj = JSON.parse(data);
+                        swal({
+                            title: dataObj.message,
+                            type: dataObj.result ? "success":"error",
+                            confirmButtonText: "确认",
+                        }, function () {
+                            if (this.type === "success") {
+                                window.location.href = "{% url "BroadviewCOSS:user" %}"
+                            }
+                        });
+                    },
+                    error: function (data) {
+                        console.log(data);
+                    }
+                })
+            }
+        }
+    </script>
+{% endblock selfjs %}

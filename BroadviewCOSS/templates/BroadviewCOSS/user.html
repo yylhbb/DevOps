@@ -6,7 +6,8 @@
         <p></p>
     </div>
     <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a>
+        </li>
         <li class="breadcrumb-item"><i class="fa fa-cog fa-lg fa-fw"></i> 系统管理</li>
         <li class="breadcrumb-item active"><i class="fa fa-user fa-lg fa-fw"></i> 用户管理</li>
     </ul>
@@ -15,18 +16,52 @@
     <div class="row">
         <div class="col-md-12">
             <div class="tile">
-                <div class="tile-body"></div>
+                <div class="tile-body">
+                    <p>
+                        <a href="{% url 'BroadviewCOSS:add-user' %}">
+                            <button class="btn btn-outline-primary">
+                                <i class="fa fa-plus-circle fa-fw"></i>添加
+                            </button>
+                        </a>
+                    </p>
+                </div>
                 <table class="table table-hover table-bordered" id="user-table">
                     <thead>
-                        <tr>
-                            <th>用户名</th>
-                            <th>所属角色</th>
-                            <th>最后登陆时间</th>
-                            <th>激活状态</th>
-                            <th>操作</th>
-                        </tr>
+                    <tr>
+                        <th>用户名</th>
+                        <th>所属角色</th>
+                        <th>最后登陆时间</th>
+                        <th>激活状态</th>
+                        <th>操作</th>
+                    </tr>
                     </thead>
-
+                    <tbody>
+                    {% for id, value in users.items %}
+                        <tr>
+                            <td>{{ value.username }}</td>
+                            <td>{{ value.userrole }}</td>
+                            <td>{{ value.last_login }}</td>
+                            <td>
+                                {% if value.is_active %}
+                                    <i class="fa fa-check fa-lg fa-fw text-success"></i>
+                                {% else %}
+                                    <i class="fa fa-close fa-lg fa-fw text-danger"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="#">
+                                    <button class="btn btn-outline-success btn-sm">
+                                        <i class="fa fa-edit fa-fw"></i>修改
+                                    </button>
+                                </a>
+                                <button class="btn btn-outline-danger btn-sm"
+                                        onclick="">
+                                    <i class="fa fa-close fa-fw"></i>删除
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -34,10 +69,5 @@
 {% endblock content %}
 {% block selfjs %}
     <script type="text/javascript">
-        $.ajaxSetup({
-            beforeSend:function (xhr,settings) {
-                xhr.setRequestHeader("X-CSRFtoken", {% csrf_token %})
-            }
-        });
     </script>
 {% endblock selfjs %}

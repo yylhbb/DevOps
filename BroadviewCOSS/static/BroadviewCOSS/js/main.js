@@ -34,12 +34,14 @@
         "language": {
             "url": "/static/BroadviewCOSS/js/plugins/dataTables/zh_CN.json"
         },
-        "pagingType": "full_numbers"
+        "pagingType": "full"
     });
+
+    $.fn.dataTable.ext.errMode = 'none';
 
     $('.content-table').DataTable();
 
-    $('#user-table').DataTable({
+    /*$('#user-table').DataTable({
         processing: true,
         serverSide: true,
         ajax: {
@@ -47,18 +49,25 @@
             url: "/user/show",
             type: "POST"
         },
-        columnDefs: [{
-            "targets": 4,
-            "data": null,
-            "render": function (data, type, row) {
-                return "" +
-                    "<a href=\"#\">" +
-                    "   <button class=\"btn btn-outline-success btn-sm\"><i class=\"fa fa-edit fa-fw\"></i>修改</button>" +
-                    "</a>" +
-                    "<button class=\"btn btn-outline-danger btn-sm\"><i class=\"fa fa-close fa-fw\"></i>删除</button>";
+        columnDefs: [
+            {
+                "targets": 0,
+                "searchable": false,
+                "visible": false,
+            },
+            {
+                "targets": 4,
+                "data": null,
+                "render": function (data, type, row) {
+                    return "" +
+                        "<a href=\"#\">" +
+                        "   <button class=\"btn btn-outline-success btn-sm\"><i class=\"fa fa-edit fa-fw\"></i>修改</button>" +
+                        "</a> " +
+                        "<button class=\"btn btn-outline-danger btn-sm\"><i class=\"fa fa-close fa-fw\"></i>删除</button>";
+                }
             }
-        }]
-    });
+        ],
+    });*/
 })();
 
 function getCookie(name) {
