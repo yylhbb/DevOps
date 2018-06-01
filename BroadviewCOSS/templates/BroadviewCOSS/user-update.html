@@ -3,7 +3,7 @@
 {% block content %}
     <div class="app-title">
         <div>
-            <h1><i class="fa fa-user-plus fa-fw"></i> 添加用户</h1>
+            <h1><i class="fa fa-edit fa-fw"></i> 修改用户</h1>
         </div>
         <ul class="app-breadcrumb breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a>
@@ -11,16 +11,17 @@
             <li class="breadcrumb-item"><i class="fa fa-cog fa-lg fa-fw"></i> 系统管理</li>
             <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:user' %}"><i class="fa fa-users fa-lg fa-fw"></i>
                 用户管理</a></li>
-            <li class="breadcrumb-item active"><i class="fa fa-user-plus fa-lg fa-fw"></i> 添加用户</li>
+            <li class="breadcrumb-item active"><i class="fa fa-edit fa-lg fa-fw"></i> 修改用户</li>
         </ul>
     </div>
     <div class="row">
         <div class="col-md-12">
             <div class="tile">
-                <form id="user-add-form" action="{% url 'BroadviewCOSS:add-user' %}" method="post"
+                <form id="user-update-form" action="{% url 'BroadviewCOSS:update-user' %}" method="post"
                       enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="tile-body">
+                        <input type="text" value="{{ user.id }}" id="user-id" name="user-id" hidden>
                         <div class="form-group row">
                             <label for="username" class="control-label col-md-3">
                                 用户名
@@ -28,7 +29,7 @@
                             </label>
                             <div class="col-md-9">
                                 <input type="text" class="form-control" id="username" name="username"
-                                       placeholder="请输入用户名">
+                                       placeholder="请输入用户名" value="{{ user.username }}" disabled>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -38,7 +39,7 @@
                             </label>
                             <div class="col-md-9">
                                 <input type="password" class="form-control" id="password" name="password"
-                                       placeholder="请输入密码">
+                                       placeholder="请输入密码" value="{{ user.password }}">
                             </div>
                         </div>
                         <div class="form-group row">
@@ -49,20 +50,34 @@
                             <div class="col-md-9">
                                 <input type="password" class="form-control" id="confirm-password"
                                        name="confirm-password"
-                                       placeholder="请再次输入密码">
+                                       placeholder="请再次输入密码" value="{{ user.password }}">
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="user-role-add" class="control-label col-md-3">
+                            <label for="user-role-update" class="control-label col-md-3">
                                 所属角色
                                 <sup><span style="color:red">*</span></sup>
                             </label>
                             <div class="col-md-9">
-                                <select class="form-control" id="user-role-add" name="user-role">
+                                <select class="form-control" id="user-role-update" name="user-role">
                                     <option value=""></option>
                                     {% for r in roles %}
-                                        <option value="{{ r.id }}">{{ r.name }}</option>
+                                        <option value="{{ r.id }}" {% if user.role == r.id %}
+                                                selected{% endif %}>{{ r.name }}</option>
                                     {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="is-active" class="control-label col-md-3">
+                                激活状态
+                                <sup><span style="color:red">*</span></sup>
+                            </label>
+                            <div class="col-md-9">
+                                <select class="form-control" id="is-active" name="is-active">
+                                    <option value=""></option>
+                                    <option value="True" {% if user.is_active %} selected {% endif %}>激活</option>
+                                    <option value="False" {% if not user.is_active %} selected {% endif %}>锁定</option>
                                 </select>
                             </div>
                         </div>
@@ -70,7 +85,7 @@
                     <div class="tile-footer">
                         <div class="row">
                             <div class="col-md-8 col-md-offset-3">
-                                <button class="btn btn-primary" type="button" onclick="userAddSubmit();">
+                                <button class="btn btn-primary" type="button" onclick="userUpdateSubmit();">
                                     <i class="fa fa-fw fa-lg fa-check-circle"></i>提交
                                 </button>
                                 <a class="btn btn-secondary" href="{% url "BroadviewCOSS:user" %}">
@@ -88,16 +103,31 @@
     <script type="text/javascript">
         'use strict';
 
-        let user_add_form = $('#user-add-form');
-        let user_role_add = $('#user-role-add');
+        let user_update_form = $('#user-update-form');
+        let user_role_update = $('#user-role-update');
+        let is_active = $('#is-active');
 
-        user_role_add.select2({
+        user_role_update.select2({
             placeholder: '请选择',
             language: 'zh-CN',
             width: "100%"
         });
 
-        let user_add_form_validate = user_add_form.validate({
+        is_active.select2({
+           placeholder: '请选择',
+           language: 'zh-CN',
+           width: '100%'
+        });
+
+        user_role_update.change(function () {
+            $(this).valid();
+        });
+
+        is_active.change(function () {
+            $(this).valid();
+        });
+
+        let user_update_form_validate = user_update_form.validate({
             ignore: "",
             rules: {
                 "username": {
@@ -106,6 +136,9 @@
                         url: "{% url "BroadviewCOSS:user-name-validate" %}",
                         type: "POST",
                         data: {
+                            "user-id": function () {
+                                return $("#user-id").val()
+                            },
                             "username": function () {
                                 return $("#username").val();
                             }
@@ -120,6 +153,9 @@
                     equalTo: "#password"
                 },
                 "user-role-add": {
+                    required: true
+                },
+                "is-active": {
                     required: true
                 }
             },
@@ -158,22 +194,18 @@
             }
         });
 
-        user_role_add.change(function () {
-            $(this).valid();
-        });
-
-        function userAddSubmit() {
-            if (user_add_form_validate.form()) {
-                let data = JSON.stringify(user_add_form.serializeObject());
+        function userUpdateSubmit() {
+            if (user_update_form_validate.form()) {
+                let data = JSON.stringify(user_update_form.serializeObject());
                 $.ajax({
-                    url: "{% url "BroadviewCOSS:add-user" %}",
+                    url: "{% url "BroadviewCOSS:update-user" %}",
                     type: "POST",
                     data: data,
                     success: function (data) {
                         let dataObj = JSON.parse(data);
                         swal({
                             title: dataObj.message,
-                            type: dataObj.result ? "success":"error",
+                            type: dataObj.result ? "success" : "error",
                             confirmButtonText: "确认",
                         }, function () {
                             if (this.type === "success") {

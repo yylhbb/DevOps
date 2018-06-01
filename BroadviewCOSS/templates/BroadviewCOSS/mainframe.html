@@ -1,36 +1,65 @@
 {% extends "BroadviewCOSS/master.html" %}
 {% load static %}
-{% block app-title %}
-    <div>
-        <h1><i class="fa fa-laptop fa-fw"></i> 主机管理</h1>
-        <p></p>
-        <p></p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a></li>
-        <li class="breadcrumb-item active"><i class="fa fa-laptop fa-lg fa-fw"></i> 主机管理</li>
-    </ul>
-{% endblock app-title %}
 {% block content %}
+    <div class="app-title">
+        <div>
+            <h1><i class="fa fa-laptop fa-fw"></i> 主机管理</h1>
+            <p></p>
+            <p></p>
+        </div>
+        <ul class="app-breadcrumb breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a></li>
+            <li class="breadcrumb-item active"><i class="fa fa-laptop fa-lg fa-fw"></i> 主机管理</li>
+        </ul>
+    </div>
     <div class="row">
         <div class="col-md-12">
             <div class="tile">
-                <div class="tile-body"></div>
-                <table class="table table-hover table-bordered content-table">
-                    <thead>
-                        <tr>
-                            <th>IP</th>
-                            <th>主机名称</th>
-                            <th>状态</th>
-                            <th>分类</th>
-                            <th>描述</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                    </tbody>
-                </table>
+                <div class="tile-title">
+                    <p>
+                        <a href="{% url 'BroadviewCOSS:add-mainframe' %}">
+                            <button class="btn btn-outline-primary">
+                                <i class="fa fa-plus-circle fa-fw"></i>添加
+                            </button>
+                        </a>
+                    </p>
+                </div>
+                <div class="tile-body">
+                    <table class="table table-hover table-bordered content-table">
+                        <thead>
+                            <tr>
+                                <th>IP</th>
+                                <th>主机名称</th>
+                                <th>状态</th>
+                                <th>分类</th>
+                                <th>描述</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for m in mainframes %}
+                            <tr>
+                                <td>{{ m.ip }}</td>
+                                <td>{{ m.hostname }}</td>
+                                <td>{{ m.status }}</td>
+                                <td>{{ m.category.name }}</td>
+                                <td>{{ m.description }}</td>
+                                <td>
+                                    <a href="{% url "BroadviewCOSS:update-mainframe" %}?m-id={{ m.id }}">
+                                        <button class="btn btn-outline-success btn-sm">
+                                            <i class="fa fa-edit fa-fw"></i>修改
+                                        </button>
+                                    </a>
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            onclick="deleteObject('{% url "BroadviewCOSS:delete-mainframe" %}', {{ m.id }});">
+                                        <i class="fa fa-close fa-fw"></i>删除
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

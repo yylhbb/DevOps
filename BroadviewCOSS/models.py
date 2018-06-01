@@ -27,6 +27,7 @@ class UserRole(models.Model):
 
     class Meta:
         db_table = 'UserRole'
+        ordering = ['id']
 
 
 class Menu(models.Model):
@@ -86,13 +87,14 @@ class Category(models.Model):
 
     class Meta:
         db_table = 'Category'
-        ordering = ['name']
+        ordering = ['id']
 
 
 class Mainframe(models.Model):
     STATUS_CHOICE = (
-        ('0', '正常'),
-        ('1', '无法连接')
+        (0, '正常'),
+        (1, '无法连接'),
+        (2, '未知')
     )
     ip = models.GenericIPAddressField()
     hostname = models.CharField(max_length=30)
@@ -102,6 +104,7 @@ class Mainframe(models.Model):
 
     class Meta:
         db_table = 'Mainframe'
+        ordering = ['id']
 
 
 class Task(models.Model):
@@ -116,6 +119,7 @@ class Task(models.Model):
 
     class Meta:
         db_table = 'Task'
+        ordering = ['last_update']
 
 
 class TaskRun(models.Model):

@@ -1,0 +1,130 @@
+{% extends "BroadviewCOSS/master.html" %}
+{% load static %}
+{% block content %}
+    <div class="app-title">
+        <div>
+            <h1><i class="fa fa-edit fa-fw"></i> 修改分类</h1>
+        </div>
+        <ul class="app-breadcrumb breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a>
+            </li>
+            <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:category' %}"><i
+                    class="fa fa-sitemap fa-lg fa-fw"></i>
+                分类管理</a></li>
+            <li class="breadcrumb-item active"><i class="fa fa-edit fa-lg fa-fw"></i> 修改分类</li>
+        </ul>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="tile">
+                <form id="category-update-form" action="{% url 'BroadviewCOSS:update-category' %}" method="post"
+                      enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="tile-body">
+                        <input type="text" value="{{ category.id }}" id="c-id" name="c-id" hidden>
+                        <div class="form-group row">
+                            <label for="c-name" class="control-label col-md-3">
+                                分类名称
+                                <sup><span style="color:red">*</span></sup>
+                            </label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="c-name" name="c-name"
+                                       placeholder="请输入分类名称" value="{{ category.name }}">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="c-desc" class="control-label col-md-3">分类描述</label>
+                            <div class="col-md-9">
+                                <textarea class="form-control" id="c-desc" name="c-desc" rows="4"
+                                          placeholder="请输入分类描述">{{ category.desc }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tile-footer">
+                        <div class="row">
+                            <div class="col-md-8 col-md-offset-3">
+                                <button class="btn btn-primary" type="button" onclick="categoryUpdateSubmit();">
+                                    <i class="fa fa-fw fa-lg fa-check-circle"></i>提交
+                                </button>
+                                <a class="btn btn-secondary" href="{% url "BroadviewCOSS:category" %}">
+                                    <i class="fa fa-fw fa-lg fa-times-circle"></i>取消
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block js %}
+    <script type="text/javascript">
+        'use strict';
+
+        let category_update_form = $('#category-update-form');
+
+        let category_update_form_validate = category_update_form.validate({
+            ignore: "",
+            rules: {
+                "c-name": {
+                    required: true,
+                    remote: {
+                        url: "{% url "BroadviewCOSS:category-name-validate" %}",
+                        type: "POST",
+                        data: {
+                            "c-id": function () {
+                                return $("#c-id").val();
+                            },
+                            "c-name": function () {
+                                return $("#c-name").val();
+                            }
+                        }
+                    }
+                },
+            },
+            messages: {
+                "c-name": {
+                    required: "请输入分类名称",
+                    remote: "分类名已存在，请重新输入"
+                }
+            },
+            errorElement: "em",
+            errorPlacement: function (error, element) {
+                error.addClass("invalid-feedback");
+                element.parent(".col-md-9").append(error);
+            },
+            highlight: function (element) {
+                $(element).addClass("is-invalid").removeClass("is-valid");
+            },
+            unhighlight: function (element) {
+                $(element).addClass("is-valid").removeClass("is-invalid");
+            }
+        });
+
+        function categoryUpdateSubmit() {
+            if (category_update_form_validate.form()) {
+                let data = JSON.stringify(category_update_form.serializeObject());
+                $.ajax({
+                    url: "{% url "BroadviewCOSS:update-category" %}",
+                    type: "POST",
+                    data: data,
+                    success: function (data) {
+                        let dataObj = JSON.parse(data);
+                        swal({
+                            title: dataObj.message,
+                            type: dataObj.result ? "success" : "error",
+                            confirmButtonText: "确认",
+                        }, function () {
+                            if (this.type === "success") {
+                                window.location.href = "{% url "BroadviewCOSS:category" %}"
+                            }
+                        });
+                    },
+                    error: function (data) {
+                        console.log(data);
+                    }
+                })
+            }
+        }
+    </script>
+{% endblock js %}

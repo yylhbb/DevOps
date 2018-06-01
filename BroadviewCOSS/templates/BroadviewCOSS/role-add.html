@@ -1,21 +1,21 @@
 {% extends "BroadviewCOSS/master.html" %}
 {% load static %}
-{% block app-title %}
-    <div>
-        <h1><i class="fa fa-plus fa-fw"></i> 添加角色</h1>
-        <p></p>
-        <p></p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a>
-        </li>
-        <li class="breadcrumb-item"><i class="fa fa-cog fa-lg"></i> 系统管理</li>
-        <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:role' %}"><i class="fa fa-users fa-lg fa-fw"></i>
-            角色管理</a></li>
-        <li class="breadcrumb-item active"><i class="fa fa-plus fa-lg fa-fw"></i> 添加角色</li>
-    </ul>
-{% endblock app-title %}
 {% block content %}
+    <div class="app-title">
+        <div>
+            <h1><i class="fa fa-plus fa-fw"></i> 添加角色</h1>
+            <p></p>
+            <p></p>
+        </div>
+        <ul class="app-breadcrumb breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a>
+            </li>
+            <li class="breadcrumb-item"><i class="fa fa-cog fa-lg"></i> 系统管理</li>
+            <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:role' %}"><i class="fa fa-users fa-lg fa-fw"></i>
+                角色管理</a></li>
+            <li class="breadcrumb-item active"><i class="fa fa-plus fa-lg fa-fw"></i> 添加角色</li>
+        </ul>
+    </div>
     <div class="row">
         <div class="col-md-12">
             <div class="tile">
@@ -56,7 +56,7 @@
                                 <select class="form-control" id="role-menu-add" name="role-menu"
                                         multiple="multiple">
                                     {% for menu in menus %}
-                                        {% if menu.parent == 0 %}
+                                        {% if menu.sub == 0 %}
                                             <option value="{{ menu.id }}">{{ menu.name }}</option>
                                         {% endif %}
                                     {% endfor %}
@@ -88,7 +88,7 @@
         </div>
     </div>
 {% endblock content %}
-{% block selfjs %}
+{% block js %}
     <script type="text/javascript">
         'use strict';
         $("#role-permission-add").select2({
@@ -184,4 +184,4 @@
             }
         }
     </script>
-{% endblock selfjs %}
+{% endblock js %}

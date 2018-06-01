@@ -1,0 +1,17 @@
+{% extends "BroadviewCOSS/base.html" %}
+{% load static %}
+{% block title %}
+    <title>运维调度平台</title>
+{% endblock title %}
+{% block bodyattrs %}
+    class="app sidebar-mini rtl"
+{% endblock bodyattrs %}
+{% block context %}
+    <main>
+        <div class="page-error">
+            <h1><i class="fa fa-exclamation-circle"></i> 错误 500: 页面错误</h1>
+            <p>您访问的页面出现错误，请联系系统管理员</p>
+            <p><a class="btn btn-primary" href="javascript:window.history.back();">Go Back</a></p>
+        </div>
+    </main>
+{% endblock context %}

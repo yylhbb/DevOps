@@ -25,7 +25,7 @@ SECRET_KEY = 'av$3n(ily%8td1pk#_ed35d!tpn9_1#$yrn+wx@c(*y8-t6pai'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -124,3 +124,10 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'BroadviewCOSS/static'),
+]
+
+STATIC_ROOT = ""
+
+LOGIN_URL = '/login'

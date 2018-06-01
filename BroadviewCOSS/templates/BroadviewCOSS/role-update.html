@@ -1,21 +1,21 @@
 {% extends "BroadviewCOSS/master.html" %}
-{% load static %}
-{% block app-title %}
-    <div>
-        <h1><i class="fa fa-edit fa-fw"></i> 修改角色</h1>
-        <p></p>
-        <p></p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a>
-        </li>
-        <li class="breadcrumb-item"><i class="fa fa-cog fa-lg"></i> 系统管理</li>
-        <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:role' %}"><i class="fa fa-users fa-lg fa-fw"></i>
-            角色管理</a></li>
-        <li class="breadcrumb-item active"><i class="fa fa-edit fa-lg fa-fw"></i> 修改角色</li>
-    </ul>
-{% endblock app-title %}
+{% load static %}r
 {% block content %}
+    <div class="app-title">
+        <div>
+            <h1><i class="fa fa-edit fa-fw"></i> 修改角色</h1>
+            <p></p>
+            <p></p>
+        </div>
+        <ul class="app-breadcrumb breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a>
+            </li>
+            <li class="breadcrumb-item"><i class="fa fa-cog fa-lg"></i> 系统管理</li>
+            <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:role' %}"><i class="fa fa-users fa-lg fa-fw"></i>
+                角色管理</a></li>
+            <li class="breadcrumb-item active"><i class="fa fa-edit fa-lg fa-fw"></i> 修改角色</li>
+        </ul>
+    </div>
     <div class="row">
         <div class="col-md-12">
             <div class="tile">
@@ -23,7 +23,7 @@
                       enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="tile-body">
-                        <input type="text" value="{{ role.id }}" name="role-id" hidden>
+                        <input type="text" value="{{ role.id }}" id="role-id" name="role-id" hidden>
                         <div class="form-group row">
                             <label for="role-name" class="control-label col-md-3">
                                 角色名称
@@ -91,7 +91,7 @@
         </div>
     </div>
 {% endblock content %}
-{% block selfjs %}
+{% block js %}
     <script type="text/javascript">
         'use strict';
 
@@ -114,7 +114,19 @@
             ignore: "",
             rules: {
                 "role-name": {
-                    required: true
+                    required: true,
+                    remote: {
+                        url: "{% url "BroadviewCOSS:role-name-validate" %}",
+                        type: "post",
+                        data: {
+                            "role-id": function () {
+                                return $("#role-id").val();
+                            },
+                            "role_name": function() {
+                                return $("#role-name").val();
+                            }
+                        }
+                    }
                 },
                 "role-permission": {
                     required: true
@@ -125,7 +137,8 @@
             },
             messages: {
                 "role-name": {
-                    required: "请输入角色名称"
+                    required: "请输入角色名称",
+                    remote: "角色名已存在，请重新输入"
                 },
                 "role-permission": {
                     required: "请选择角色权限"
@@ -190,4 +203,4 @@
             }
         }
     </script>
-{% endblock selfjs %}
+{% endblock js %}

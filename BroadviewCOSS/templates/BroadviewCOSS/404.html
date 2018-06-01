@@ -1,0 +1,17 @@
+{% extends "BroadviewCOSS/base.html" %}
+{% load static %}
+{% block title %}
+    <title>运维调度平台</title>
+{% endblock title %}
+{% block bodyattrs %}
+    class="app sidebar-mini rtl"
+{% endblock bodyattrs %}
+{% block context %}
+    <main>
+        <div class="page-error">
+            <h1><i class="fa fa-exclamation-circle"></i> 错误 404: 页面没有找到</h1>
+            <p>找不到您所请求的页面</p>
+            <p><a class="btn btn-primary" href="javascript:window.history.back();">Go Back</a></p>
+        </div>
+    </main>
+{% endblock context %}

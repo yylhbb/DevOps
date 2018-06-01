@@ -1,0 +1,168 @@
+{% extends "BroadviewCOSS/master.html" %}
+{% load static %}
+{% block content %}
+    <div class="app-title">
+        <div>
+            <h1><i class="fa fa-plus fa-fw"></i> 添加主机</h1>
+        </div>
+        <ul class="app-breadcrumb breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a>
+            </li>
+            <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:category' %}"><i class="fa fa-laptop fa-lg fa-fw"></i>
+                主机管理</a></li>
+            <li class="breadcrumb-item active"><i class="fa fa-plus fa-lg fa-fw"></i> 添加分类</li>
+        </ul>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="tile">
+                <form id="mainframe-add-form" action="{% url 'BroadviewCOSS:add-mainframe' %}" method="post"
+                      enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="tile-body">
+                        <div class="form-group row">
+                            <label for="m-ip" class="control-label col-md-3">
+                                IP 地址
+                                <sup><span style="color:red">*</span></sup>
+                            </label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="m-ip" name="m-ip"
+                                       placeholder="请输入 IP 地址">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="m-hostname" class="control-label col-md-3">
+                                主机名称
+                                <sup><span style="color:red">*</span></sup>
+                            </label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" id="m-hostname" name="m-hostname"
+                                       placeholder="请输入主机名称">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="m-category-add" class="control-label col-md-3">
+                                主机分类
+                                <sup><span style="color:red">*</span></sup>
+                            </label>
+                            <div class="col-md-9">
+                                <select class="form-control" id="m-category-add" name="m-category">
+                                    <option value=""></option>
+                                    {% for c in categories %}
+                                        <option value="{{ c.id }}">{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="m-desc" class="control-label col-md-3">主机描述</label>
+                            <div class="col-md-9">
+                                <textarea class="form-control" id="m-desc" name="m-desc" rows="4"
+                                          placeholder="请输入主机描述"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tile-footer">
+                        <div class="row">
+                            <div class="col-md-8 col-md-offset-3">
+                                <button class="btn btn-primary" type="button" onclick="mainframeAddSubmit();">
+                                    <i class="fa fa-fw fa-lg fa-check-circle"></i>提交
+                                </button>
+                                <a class="btn btn-secondary" href="{% url "BroadviewCOSS:mainframe" %}">
+                                    <i class="fa fa-fw fa-lg fa-times-circle"></i>取消
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block js %}
+    <script type="text/javascript">
+        'use strict';
+
+        let mainframe_add_form = $('#mainframe-add-form');
+        let mainframe_category_add = $('#m-category-add');
+
+        mainframe_category_add.select2({
+            placeholder: '请选择',
+            language: 'zh-CN',
+        });
+
+        let mainframe_add_form_validate = mainframe_add_form.validate({
+            ignore: "",
+            rules: {
+                "m-ip": {
+                    required: true,
+
+                    remote: {
+                        url: "{% url "BroadviewCOSS:mainframe-ip-validate" %}",
+                        type: "POST",
+                        data: {
+                            "m-ip": function () {
+                                return $("#m-ip").val();
+                            }
+                        }
+                    }
+                },
+                "m-hostname": {
+                    required: true
+                },
+                "m-category-add": {
+                    required: true
+                }
+            },
+            messages: {
+                "m-ip": {
+                    required: "请输入 IP 地址",
+                    remote: "IP 已存在，请重新输入"
+                },
+                "m-hostname": {
+                    required: "请输入主机名称"
+                },
+                "m-category-add": {
+                    required: "请选择主机分类"
+                }
+            },
+            errorElement: "em",
+            errorPlacement: function (error, element) {
+                error.addClass("invalid-feedback");
+                element.parent(".col-md-9").append(error);
+            },
+            highlight: function (element) {
+                $(element).addClass("is-invalid").removeClass("is-valid");
+            },
+            unhighlight: function (element) {
+                $(element).addClass("is-valid").removeClass("is-invalid");
+            }
+        });
+
+        function mainframeAddSubmit() {
+            if (mainframe_add_form_validate.form()) {
+                let data = JSON.stringify(mainframe_add_form.serializeObject());
+                $.ajax({
+                    url: "{% url "BroadviewCOSS:add-mainframe" %}",
+                    type: "POST",
+                    data: data,
+                    success: function (data) {
+                        let dataObj = JSON.parse(data);
+                        swal({
+                            title: dataObj.message,
+                            type: dataObj.result ? "success":"error",
+                            confirmButtonText: "确认",
+                        }, function () {
+                            if (this.type === "success") {
+                                window.location.href = "{% url "BroadviewCOSS:mainframe" %}"
+                            }
+                        });
+                    },
+                    error: function (data) {
+                        console.log(data);
+                    }
+                })
+            }
+        }
+    </script>
+{% endblock js %}

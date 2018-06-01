@@ -11,9 +11,9 @@
         <a class="app-header__logo" href="{% url 'BroadviewCOSS:index' %}">运维调度平台</a>
         <a class="app-sidebar__toggle" href="#" data-toggle="sidebar" aria-label="隐藏工具栏"></a>
         <ul class="app-nav">
-            <li class="app-nav__item">欢迎你，管理员</li>
+            <li class="app-nav__item">欢迎你，{{ request.session.username }}</li>
             <li>
-                <a class="app-nav__item" href="{% url 'BroadviewCOSS:login' %}">
+                <a class="app-nav__item" href="{% url 'BroadviewCOSS:logout' %}">
                     <i class="fa fa-sign-out fa-lg"></i> 退出
                 </a>
             </li>
@@ -56,22 +56,7 @@
         </ul>
     </aside>
     <main class="app-content">
-        <div class="app-title">
-            {% block app-title %}
-            {% endblock app-title %}
-        </div>
         {% block content %}
         {% endblock content %}
     </main>
 {% endblock context %}
-{% block js %}
-    <script src="{% static "BroadviewCOSS/js/plugins/dataTables/js/jquery.dataTables.min.js" %}"></script>
-    <script src="{% static "BroadviewCOSS/js/plugins/dataTables/js/dataTables.bootstrap4.min.js" %}"></script>
-    <script src="{% static "BroadviewCOSS/js/plugins/select2/select2.min.js" %}"></script>
-    <script src="{% static "BroadviewCOSS/js/plugins/select2/zh-CN.js" %}"></script>
-    <script src="{% static "BroadviewCOSS/js/plugins/notify/bootstrap-notify.min.js" %}"></script>
-    <script src="{% static "BroadviewCOSS/js/plugins/sweetalert/sweetalert.min.js" %}"></script>
-
-    {% block selfjs %}
-    {% endblock selfjs %}
-{% endblock js %}

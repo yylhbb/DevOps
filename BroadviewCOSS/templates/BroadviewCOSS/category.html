@@ -1,32 +1,58 @@
 {% extends "BroadviewCOSS/master.html" %}
-{% block app-title %}
-    <div>
-        <h1><i class="fa fa-sitemap"></i> 分类管理</h1>
-        <p></p>
-        <p></p>
-    </div>
-    <ul class="app-breadcrumb breadcrumb">
-        <li class="breadcrumb-item"><i class="fa fa-home fa-lg"></i></li>
-        <li class="breadcrumb-item"><i class="fa fa-sitemap fa-lg"></i> 分类管理</li>
-    </ul>
-{% endblock app-title %}
 {% block content %}
+    <div class="app-title">
+        <div>
+            <h1><i class="fa fa-sitemap"></i> 分类管理</h1>
+            <p></p>
+            <p></p>
+        </div>
+        <ul class="app-breadcrumb breadcrumb">
+            <li class="breadcrumb-item"><i class="fa fa-home fa-lg"></i></li>
+            <li class="breadcrumb-item"><i class="fa fa-sitemap fa-lg"></i> 分类管理</li>
+        </ul>
+    </div>
     <div class="row">
         <div class="col-md-12">
             <div class="tile">
-                <div class="tile-body"></div>
-                <table class="table table-hover table-bordered content-table">
-                    <thead>
+                <div class="tile-title">
+                    <p>
+                        <a href="{% url 'BroadviewCOSS:add-category' %}">
+                            <button class="btn btn-outline-primary">
+                                <i class="fa fa-plus-circle fa-fw"></i>添加
+                            </button>
+                        </a>
+                    </p>
+                </div>
+                <div class="tile-body">
+                    <table class="table table-hover table-bordered content-table">
+                        <thead>
                         <tr>
                             <th>类型名称</th>
                             <th>类型描述</th>
                             <th>操作</th>
                         </tr>
-                    </thead>
-                    <tbody>
-
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        {% for category in categories %}
+                            <tr>
+                                <td>{{ category.name }}</td>
+                                <td>{{ category.description }}</td>
+                                <td>
+                                    <a href="{% url "BroadviewCOSS:update-category" %}?c-id={{ category.id }}">
+                                        <button class="btn btn-outline-success btn-sm">
+                                            <i class="fa fa-edit fa-fw"></i>修改
+                                        </button>
+                                    </a>
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            onclick="deleteObject('{% url "BroadviewCOSS:delete-category" %}', {{ category.id }});">
+                                        <i class="fa fa-close fa-fw"></i>删除
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

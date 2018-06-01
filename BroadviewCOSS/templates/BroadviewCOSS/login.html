@@ -16,7 +16,7 @@
             <h1>运维调度平台</h1>
         </div>
         <div class="login-box">
-            <form class="login-form" action="{% url 'BroadviewCOSS:login' %}" method="post"
+            <form class="login-form" id="login-form" action="{% url 'BroadviewCOSS:login' %}" method="post"
                   enctype="multipart/form-data">
                 {% csrf_token %}
                 <h3 class="login-head">
@@ -24,24 +24,16 @@
                 </h3>
                 <div class="form-group">
                     <label class="control-label">用户名</label>
-                    {{ LoginForm.username }}
+                    <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名"
+                           autofocus>
                 </div>
                 <div class="form-group">
                     <label class="control-label">密码</label>
-                    {{ LoginForm.password }}
-                </div>
-                <div class="form-group">
-                    <div class="utility">
-                        <div class="animated-checkbox">
-                            <label>
-                                {{ LoginForm.remember_me }}
-                                <span class="label-text">记住我</span>
-                            </label>
-                        </div>
-                    </div>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码">
                 </div>
                 <div class="form-group btn-container">
-                    <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-sign-in fa-lg fa-fw"></i>登陆
+                    <button type="button" class="btn btn-primary btn-block" onclick="login();"><i
+                            class="fa fa-sign-in fa-lg fa-fw"></i>登陆
                     </button>
                 </div>
             </form>
@@ -50,10 +42,64 @@
 {% endblock context %}
 {% block js %}
     <script type="text/javascript">
-        // Login Page Flipbox control
         $('.login-content [data-toggle="flip"]').click(function () {
             $('.login-box').toggleClass('flipped');
             return false;
         });
+
+        let login_form = $('#login-form');
+        let login_form_validate = login_form.validate({
+            ignore: "",
+            rules: {
+                "username": {
+                    required: true
+                },
+                "password": {
+                    required: true
+                }
+            },
+            messages: {
+                "username": {
+                    required: "请输入用户名"
+                },
+                "password": {
+                    required: "请输入密码"
+                }
+            },
+            errorElement: "em",
+            errorPlacement: function (error, element) {
+                error.addClass("invalid-feedback");
+                element.parent(".form-group").append(error);
+            },
+            highlight: function (element) {
+                $(element).addClass("is-invalid").removeClass("is-valid");
+            },
+            unhighlight: function (element) {
+                $(element).addClass("is-valid").removeClass("is-invalid");
+            }
+        });
+
+        function login() {
+            if (login_form_validate.form()) {
+                let data = JSON.stringify(login_form.serializeObject());
+                $.ajax({
+                    url: "{% url "BroadviewCOSS:login" %}",
+                    type: "POST",
+                    data: data,
+                    success: function (data) {
+                        let dataObj = JSON.parse(data);
+                        if (dataObj.result) {
+                            window.location.href = "{% url "BroadviewCOSS:index" %}"
+                        } else {
+                            swal({
+                                title: dataObj.message,
+                                type: "error",
+                                confirmButtonText: "确认"
+                            })
+                        }
+                    }
+                });
+            }
+        }
     </script>
 {% endblock %}
