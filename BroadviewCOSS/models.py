@@ -97,6 +97,7 @@ class Mainframe(models.Model):
         (2, '未知')
     )
     ip = models.GenericIPAddressField()
+    host = models.PositiveIntegerField(default=9876)
     hostname = models.CharField(max_length=30)
     category = models.ForeignKey(Category, default=0, db_column='category', on_delete=models.SET_DEFAULT, )
     status = models.PositiveIntegerField(default=0, choices=STATUS_CHOICE)

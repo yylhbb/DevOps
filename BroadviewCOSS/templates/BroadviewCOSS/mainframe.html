@@ -28,8 +28,9 @@
                     <table class="table table-hover table-bordered content-table">
                         <thead>
                             <tr>
-                                <th>IP</th>
                                 <th>主机名称</th>
+                                <th>IP</th>
+                                <th>端口</th>
                                 <th>状态</th>
                                 <th>分类</th>
                                 <th>描述</th>
@@ -39,14 +40,23 @@
                         <tbody>
                         {% for m in mainframes %}
                             <tr>
-                                <td>{{ m.ip }}</td>
                                 <td>{{ m.hostname }}</td>
-                                <td>{{ m.status }}</td>
+                                <td>{{ m.ip }}</td>
+                                <td>{{ m.host }}</td>
+                                <td>
+                                    {% if m.status == 0 %}
+                                        <i class="fa fa-check-circle fa-fw text-success"></i>正常
+                                    {% elif m.status == 1 %}
+                                        <i class="fa fa-times-circle fa-fw text-danger"></i>无法连接
+                                    {% else %}
+                                        <i class="fa fa-question-circle fa-fw text-warning"></i>未知
+                                    {% endif %}
+                                </td>
                                 <td>{{ m.category.name }}</td>
                                 <td>{{ m.description }}</td>
                                 <td>
                                     <a href="{% url "BroadviewCOSS:update-mainframe" %}?m-id={{ m.id }}">
-                                        <button class="btn btn-outline-success btn-sm">
+                                        <button class="btn btn-outline-info btn-sm">
                                             <i class="fa fa-edit fa-fw"></i>修改
                                         </button>
                                     </a>

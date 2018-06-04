@@ -129,6 +129,9 @@ def mainframe_add(request):
                 if verify_permission(username, 'update'):
                     data = json.loads(request.body)
                     m_ip = data['m-ip']
+                    m_host = data['m-host']
+                    if not m_host:
+                        m_host = 9876
                     m_hostname = data['m-hostname']
                     m_category_id = data['m-category']
                     m_desc = data['m-desc']
@@ -137,6 +140,7 @@ def mainframe_add(request):
                         with transaction.atomic():
                             models.Mainframe.objects.create(
                                 ip=m_ip,
+                                host=m_host,
                                 hostname=m_hostname,
                                 status=2,
                                 category=models.Category.objects.get(id=m_category_id),
@@ -172,12 +176,105 @@ def mainframe_add(request):
         return HttpResponseRedirect('/login')
 
 
+@transaction.atomic()
 def mainframe_update(request):
-    pass
+    username = request.session.get('username', None)
+    if username:
+        menus = get_menus(username)
+        if verify_menus(menus, 'mainframe'):
+            if request.method == 'POST':
+                if verify_permission(username, 'update'):
+                    data = json.loads(request.body)
+                    m_id = data['m-id']
+                    m_ip = data['m-ip']
+                    m_host = data['m-host']
+                    if not m_host:
+                        m_host = 9876
+
+                    m_hostname = data['m-hostname']
+                    m_category_id = data['m-category']
+                    m_desc = data['m-desc']
+
+                    try:
+                        with transaction.atomic():
+                            m = models.Mainframe.objects.get(id=m_id)
+                            m.ip = m_ip
+                            m.host = m_host
+                            m.hostname = m_hostname
+                            m.description = m_desc
+                            m.category = models.Category.objects.get(id=m_category_id)
+
+                            m.save()
+
+                            context = {
+                                'result': True,
+                                'message': '主机修改成功'
+                            }
+                    except (ValueError, IntegrityError, AttributeError, Exception):
+                        context = {
+                            'result': False,
+                            'message': '主机修改失败'
+                        }
+                else:
+                    context = {
+                        'result': False,
+                        'message': "权限不足"
+                    }
+
+                return HttpResponse(json.dumps(context))
+            else:
+                m_id = request.GET.get('m-id')
+                m = models.Mainframe.objects.get(id=m_id)
+
+                return_value = {
+                    'mainframe': m,
+                    'categories': models.Category.objects.all(),
+                    'menus': menus,
+                    'active': 'mainframe'
+                }
+                return render(request, 'BroadviewCOSS/mainframe-update.html', return_value)
+        else:
+            raise PermissionDenied
+    else:
+        return HttpResponseRedirect('/login')
 
 
 def mainframe_delete(request):
-    pass
+    username = request.session.get('username', None)
+    if username:
+        menus = get_menus(username)
+        if verify_menus(menus, 'category'):
+            if request.method == 'POST':
+                if verify_permission(username, 'delete'):
+                    data = json.loads(request.body)
+                    m_id = data['id']
+
+                    try:
+                        with transaction.atomic():
+                            models.Mainframe.objects.get(id=m_id).delete()
+
+                            context = {
+                                'result': True,
+                                'message': '主机删除成功'
+                            }
+                    except (ValueError, IntegrityError, AttributeError, Exception):
+                        context = {
+                            'result': False,
+                            'message': '主机删除失败'
+                        }
+                else:
+                    context = {
+                        'result': False,
+                        'message': '权限不足'
+                    }
+
+                return HttpResponse(json.dumps(context))
+            else:
+                return HttpResponseRedirect('/mainframe')
+        else:
+            raise PermissionDenied
+    else:
+        return HttpResponseRedirect('/login')
 
 
 def category(request):
@@ -360,7 +457,14 @@ def task(request):
     if username:
         menus = get_menus(username)
         if verify_menus(menus, 'task'):
-            return render(request, 'BroadviewCOSS/task.html', {'menus': menus, 'active': 'task'})
+            t_list = models.Task.objects.all()
+
+            return_value = {
+                'tasks': t_list,
+                'menus': menus,
+                'active': 'task'
+            }
+            return render(request, 'BroadviewCOSS/task.html', return_value)
         else:
             raise PermissionDenied
     else:

@@ -17,10 +17,11 @@
     <div class="row">
         <div class="col-md-12">
             <div class="tile">
-                <form id="mainframe-add-form" action="{% url 'BroadviewCOSS:add-mainframe' %}" method="post"
+                <form id="mainframe-update-form" action="{% url 'BroadviewCOSS:update-mainframe' %}" method="post"
                       enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="tile-body">
+                        <input type="text" value="{{ mainframe.id }}" id="m-id" name="m-id" hidden>
                         <div class="form-group row">
                             <label for="m-hostname" class="control-label col-md-3">
                                 主机名称
@@ -28,7 +29,7 @@
                             </label>
                             <div class="col-md-9">
                                 <input type="text" class="form-control" id="m-hostname" name="m-hostname"
-                                       placeholder="请输入主机名称">
+                                       placeholder="请输入主机名称" value="{{ mainframe.hostname }}">
                             </div>
                         </div>
                         <div class="form-group row">
@@ -38,7 +39,7 @@
                             </label>
                             <div class="col-md-9">
                                 <input type="text" class="form-control" id="m-ip" name="m-ip"
-                                       placeholder="请输入 IP 地址">
+                                       placeholder="请输入 IP 地址" value="{{ mainframe.ip }}">
                             </div>
                         </div>
                         <div class="form-group row">
@@ -47,19 +48,20 @@
                             </label>
                             <div class="col-md-9">
                                 <input type="text" class="form-control" id="m-host" name="m-host"
-                                       placeholder="请输入端口号">
+                                       placeholder="请输入端口号" value="{{ mainframe.host }}">
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="m-category-add" class="control-label col-md-3">
+                            <label for="m-category-update" class="control-label col-md-3">
                                 主机分类
                                 <sup><span style="color:red">*</span></sup>
                             </label>
                             <div class="col-md-9">
-                                <select class="form-control" id="m-category-add" name="m-category">
+                                <select class="form-control" id="m-category-update" name="m-category">
                                     <option value=""></option>
                                     {% for c in categories %}
-                                        <option value="{{ c.id }}">{{ c.name }}</option>
+                                        <option value="{{ c.id }}" {% if mainframe.category.id == c.id %}
+                                                selected {% endif %}>{{ c.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -68,14 +70,14 @@
                             <label for="m-desc" class="control-label col-md-3">主机描述</label>
                             <div class="col-md-9">
                                 <textarea class="form-control" id="m-desc" name="m-desc" rows="4"
-                                          placeholder="请输入主机描述"></textarea>
+                                          placeholder="请输入主机描述">{{ mainframe.description }}</textarea>
                             </div>
                         </div>
                     </div>
                     <div class="tile-footer">
                         <div class="row">
                             <div class="col-md-8 col-md-offset-3">
-                                <button class="btn btn-primary" type="button" onclick="mainframeAddSubmit();">
+                                <button class="btn btn-primary" type="button" onclick="mainframeUpdateSubmit();">
                                     <i class="fa fa-fw fa-lg fa-check-circle"></i>提交
                                 </button>
                                 <a class="btn btn-secondary" href="{% url "BroadviewCOSS:mainframe" %}">
@@ -98,18 +100,18 @@
         }, "请填写正确的 IP 地址");
 
         $.validator.addMethod('host', function (value, element) {
-            return this.optional(element) || (/^[-+]?\d+$/.test(value) && parseInt(value)>=0);
+            return this.optional(element) || (/^[-+]?\d+$/.test(value) && parseInt(value) >= 0);
         }, "请填写正确的端口号");
 
-        let mainframe_add_form = $('#mainframe-add-form');
-        let mainframe_category_add = $('#m-category-add');
+        let mainframe_update_form = $('#mainframe-update-form');
+        let mainframe_category_update = $('#m-category-update');
 
-        mainframe_category_add.select2({
+        mainframe_category_update.select2({
             placeholder: '请选择',
             language: 'zh-CN',
         });
 
-        let mainframe_add_form_validate = mainframe_add_form.validate({
+        let mainframe_update_form_validate = mainframe_update_form.validate({
             ignore: "",
             rules: {
                 "m-ip": {
@@ -119,6 +121,9 @@
                         url: "{% url "BroadviewCOSS:mainframe-ip-validate" %}",
                         type: "POST",
                         data: {
+                            "m-id": function () {
+                               return $("#m-id").val();
+                            },
                             "m-ip": function () {
                                 return $("#m-ip").val();
                             }
@@ -126,7 +131,7 @@
                     }
                 },
                 "m-host": {
-                   host: true
+                    host: true
                 },
                 "m-hostname": {
                     required: true
@@ -160,11 +165,11 @@
             }
         });
 
-        function mainframeAddSubmit() {
-            if (mainframe_add_form_validate.form()) {
-                let data = JSON.stringify(mainframe_add_form.serializeObject());
+        function mainframeUpdateSubmit() {
+            if (mainframe_update_form_validate.form()) {
+                let data = JSON.stringify(mainframe_update_form.serializeObject());
                 $.ajax({
-                    url: "{% url "BroadviewCOSS:add-mainframe" %}",
+                    url: "{% url "BroadviewCOSS:update-mainframe" %}",
                     type: "POST",
                     data: data,
                     success: function (data) {
