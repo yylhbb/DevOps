@@ -459,8 +459,31 @@ def task(request):
         if verify_menus(menus, 'task'):
             t_list = models.Task.objects.all()
 
+            t_dict = {}
+
+            for t in t_list:
+                td = t_dict[t.id] = {}
+                td['name'] = t.name
+                td['desc'] = t.description
+                td['user'] = t.user.username
+                td['last_update'] = t.last_update
+
+                c_list = []
+                t_c_list = t.taskcategory_set.all()
+                for t_c in t_c_list:
+                    c_list.append(t_c.category.name)
+
+                td['category'] = c_list
+
+                m_list = []
+                t_m_list = t.taskmainframe_set.all()
+                for t_m in t_m_list:
+                    m_list.append(t_m.mainframe.hostname)
+
+                td['mainframe'] = m_list
+
             return_value = {
-                'tasks': t_list,
+                'tasks': t_dict,
                 'menus': menus,
                 'active': 'task'
             }
@@ -476,24 +499,342 @@ def task_name_validate(request):
     if username:
         menus = get_menus(username)
         if verify_menus(menus, 'task'):
-            t = request.POST.get('t-name')
-            is_validate = models.Task.objects.filter(name=t).exists()
+            t_id = request.POST.get('t-id')
+            t_name = request.POST.get('t-name')
+            if t_id is None or not models.Task.objects.get(id=t_id).name == t_name:
+                is_validate = models.Task.objects.filter(name=t_name).exists()
+            else:
+                is_validate = False
 
             return HttpResponse(json.dumps(not is_validate))
     else:
         return HttpResponseRedirect('/login')
 
 
+def task_details(request):
+    username = request.session.get('username', None)
+    if username:
+        menus = get_menus(username)
+        if verify_menus(menus, 'task'):
+            if request.method == 'GET':
+                t_id = request.GET.get('t-id')
+                t = models.Task.objects.get(id=t_id)
+
+                t_c_list = t.taskcategory_set.all()
+                c_list = []
+                for t_c in t_c_list:
+                    c_list.append(t_c.category.name)
+
+                t_m_list = t.taskmainframe_set.all()
+                m_list = []
+                for t_m in t_m_list:
+                    m_list.append(t_m.mainframe.hostname)
+
+                task_dict = {
+                    'id': t.id,
+                    'name': t.name,
+                    'categories': c_list,
+                    'mainframes': m_list,
+                    'description': t.description,
+                    'task': t.task,
+                    'create_date': t.create_date,
+                    'last_update': t.last_update,
+                    'user': t.user.username,
+                }
+
+                return_value = {
+                    'task': task_dict,
+                    'taskrun': models.TaskRun.objects.filter(task=t),
+                    'menus': menus,
+                    'active': 'task'
+                }
+
+                return render(request, 'BroadviewCOSS/task-details.html', return_value)
+        else:
+            raise PermissionDenied
+    else:
+        return HttpResponseRedirect('/login')
+
+
+@transaction.atomic()
 def task_add(request):
-    pass
+    username = request.session.get('username', None)
+    if username:
+        menus = get_menus(username)
+        if verify_menus(menus, 'task'):
+            if request.method == 'POST':
+                if verify_permission(username, 'update'):
+                    data = json.loads(request.body)
+                    t_name = data['t-name']
+                    t_categories_id = data.get('t-category', None)
+                    t_mainframes_id = data.get('t-mainframe', None)
+                    t_task = data['t-task']
+                    t_desc = data['t-desc']
+
+                    t_user = get_user(username)
+
+                    try:
+                        with transaction.atomic():
+                            t = models.Task.objects.create(
+                                name=t_name,
+                                task=t_task,
+                                description=t_desc,
+                                user=t_user
+                            )
+
+                            if t_categories_id:
+                                for c_id in t_categories_id:
+                                    c = models.Category.objects.get(id=c_id)
+
+                                    models.TaskCategory.objects.create(
+                                        task=t,
+                                        category=c
+                                    )
+
+                            if t_mainframes_id:
+                                for m_id in t_mainframes_id:
+                                    m = models.Mainframe.objects.get(id=m_id)
+
+                                    models.TaskMainframe.objects.create(
+                                        task=t,
+                                        mainframe=m
+                                    )
+
+                            context = {
+                                'result': True,
+                                'message': '任务添加成功'
+                            }
+                    except (ValueError, IntegrityError, AttributeError, Exception):
+                        context = {
+                            'result': False,
+                            'message': '任务添加失败'
+                        }
+                else:
+                    context = {
+                        'result': False,
+                        'message': '权限不足'
+                    }
+
+                return HttpResponse(json.dumps(context))
+            else:
+                return_value = {
+                    'categories': models.Category.objects.all(),
+                    'mainframes': models.Mainframe.objects.all(),
+                    'menus': menus,
+                    'active': 'task'
+                }
+                return render(request, "BroadviewCOSS/task-add.html", return_value)
+        else:
+            raise PermissionDenied
+    else:
+        return HttpResponseRedirect('/login')
 
 
+@transaction.atomic()
 def task_update(request):
-    pass
+    username = request.session.get('username', None)
+    if username:
+        menus = get_menus(username)
+        if verify_menus(menus, 'task'):
+            if request.method == 'POST':
+                if verify_permission(username, 'update'):
+                    data = json.loads(request.body)
+                    t_id = data.get('t-id')
+                    t_name = data.get('t-name')
+                    t_categories_id = data.get('t-category', None)
+                    t_mainframes_id = data.get('t-mainframe', None)
+                    t_task = data.get('t-task')
+                    t_desc = data.get('t-desc')
+
+                    t_user = get_user(username)
+
+                    try:
+                        with transaction.atomic():
+                            t = models.Task.objects.get(id=t_id)
+                            t.name = t_name
+                            t.task = t_task
+                            t.description = t_desc
+                            t.user = t_user
+
+                            t.save()
+
+                            t.taskcategory_set.all().delete()
+                            if t_categories_id:
+                                for c_id in t_categories_id:
+                                    c = models.Category.objects.get(id=c_id)
+                                    t.taskcategory_set.create(category=c)
+
+                            t.taskmainframe_set.all().delete()
+                            if t_mainframes_id:
+                                for m_id in t_mainframes_id:
+                                    m = models.Mainframe.objects.get(id=m_id)
+                                    t.taskmainframe_set.create(mainframe=m)
+
+                            context = {
+                                'result': True,
+                                'message': '任务修改成功'
+                            }
+                    except (ValueError, IntegrityError, AttributeError, Exception):
+                        context = {
+                            'result': False,
+                            'message': '任务修改失败'
+                        }
+                else:
+                    context = {
+                        'result': False,
+                        'message': '用户修改失败'
+                    }
+
+                return HttpResponse(json.dumps(context))
+            else:
+                t_id = request.GET.get('t-id')
+                t = models.Task.objects.get(id=t_id)
+
+                t_c_list = t.taskcategory_set.all()
+                c_list = []
+                for t_c in t_c_list:
+                    c_list.append(t_c.category.id)
+
+                t_m_list = t.taskmainframe_set.all()
+                m_list = []
+                for t_m in t_m_list:
+                    m_list.append(t_m.mainframe.id)
+
+                task_dict = {
+                    'id': t.id,
+                    'name': t.name,
+                    'categories': c_list,
+                    'mainframes': m_list,
+                    'task': t.task,
+                    'desc': t.description
+                }
+
+                return_value = {
+                    'task': task_dict,
+                    'categories': models.Category.objects.all(),
+                    'mainframes': models.Mainframe.objects.all(),
+                    'menus': menus,
+                    'active': 'task'
+                }
+
+                return render(request, 'BroadviewCOSS/task-update.html', return_value)
+        else:
+            raise PermissionDenied
+    else:
+        return HttpResponseRedirect('/login')
 
 
+@transaction.atomic()
 def task_delete(request):
-    pass
+    username = request.session.get('username', None)
+    if username:
+        menus = get_menus(username)
+        if verify_menus(menus, 'task'):
+            if request.method == 'POST':
+                if verify_permission(username, 'delete'):
+                    data = json.loads(request.body)
+                    t_id = data['id']
+
+                    try:
+                        with transaction.atomic():
+                            models.Task.objects.get(id=t_id).delete()
+
+                            context = {
+                                'result': True,
+                                'message': '任务删除成功'
+                            }
+                    except (ValueError, IntegrityError, AttributeError, Exception):
+                        context = {
+                            'result': False,
+                            'message': '任务删除失败'
+                        }
+                else:
+                    context = {
+                        'result': False,
+                        'message': '权限不足'
+                    }
+
+                return HttpResponse(json.dumps(context))
+            else:
+                return HttpResponseRedirect('/task')
+        else:
+            raise PermissionDenied
+    else:
+        return HttpResponseRedirect('/login')
+
+
+@transaction.atomic()
+def taskrun_add(request):
+    username = request.session.get('username', None)
+    if username:
+        menus = get_menus(username)
+        if verify_menus(menus, 'task'):
+            if request.method == 'POST':
+                if verify_permission(username, 'update'):
+                    data = json.loads(request.body)
+                    t_id = data['t-id']
+                    start_time = data['start-time']
+
+                    try:
+                        with transaction.atomic():
+                            t = models.Task.objects.get(id=t_id)
+                            u = get_user(username)
+                            models.TaskRun.objects.create(
+                                start_time=datetime.datetime.strptime(start_time, '%Y/%m/%d %H:%M'),
+                                task=t,
+                                user=u,
+                            )
+
+                            context = {
+                                'result': True,
+                                'message': '添加运行计划成功'
+                            }
+
+                    except (ValueError, IntegrityError, AttributeError, Exception) as e:
+                        context = {
+                            'result': False,
+                            'message': '添加运行计划失败'
+                        }
+
+                else:
+                    context = {
+                        'result': False,
+                        'message': '权限不足'
+                    }
+
+                return HttpResponse(json.dumps(context))
+            else:
+                return HttpResponseRedirect('/task')
+        else:
+            raise PermissionDenied
+    else:
+        return HttpResponseRedirect('/login')
+
+
+@transaction.atomic()
+def taskrun_update(request):
+    username = request.session.get('username', None)
+    if username:
+        menus = get_menus(username)
+        if verify_menus(menus, 'task'):
+            pass
+        else:
+            raise PermissionDenied
+    else:
+        return HttpResponseRedirect('/login')
+
+
+@transaction.atomic()
+def taskrun_delete(request):
+    username = request.session.get('username', None)
+    if username:
+        menus = get_menus(username)
+        if verify_menus(menus, 'task'):
+            pass
+        else:
+            raise PermissionDenied
+    else:
+        return HttpResponseRedirect('/login')
 
 
 def user(request):
@@ -935,8 +1276,14 @@ def permission_denied(request, exception):
     return render(request, 'BroadviewCOSS/403.html')
 
 
-def get_menus(username):
+def get_user(username):
     u = models.User.objects.get(username=username)
+
+    return u
+
+
+def get_menus(username):
+    u = get_user(username)
     menu_role_list = u.userrole.role.menurole_set.all()
 
     menus = []
@@ -947,7 +1294,7 @@ def get_menus(username):
 
 
 def get_permission(username):
-    u = models.User.objects.get(username=username)
+    u = get_user(username)
 
     permission = u.userrole.role.rolepermission.permission
 

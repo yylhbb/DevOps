@@ -112,8 +112,6 @@ class Task(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     task = models.TextField()
-    category = models.ForeignKey(Category, null=True, db_column='category', on_delete=models.SET_NULL, )
-    mainframe = models.ForeignKey(Mainframe, null=True, db_column='mainframe', on_delete=models.SET_NULL, )
     create_date = models.DateTimeField(auto_now_add=True)
     last_update = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, null=True, db_column='user', on_delete=models.SET_NULL, )
@@ -121,6 +119,22 @@ class Task(models.Model):
     class Meta:
         db_table = 'Task'
         ordering = ['last_update']
+
+
+class TaskCategory(models.Model):
+    task = models.ForeignKey(Task, db_column='task', on_delete=models.CASCADE, )
+    category = models.ForeignKey(Category, db_column='category', on_delete=models.CASCADE, )
+
+    class Meta:
+        db_table = 'TaskCategory'
+
+
+class TaskMainframe(models.Model):
+    task = models.ForeignKey(Task, db_column='task', on_delete=models.CASCADE, )
+    mainframe = models.ForeignKey(Mainframe, db_column='mainframe', on_delete=models.CASCADE, )
+
+    class Meta:
+        db_table = 'TaskMainframe'
 
 
 class TaskRun(models.Model):

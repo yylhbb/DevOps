@@ -1,14 +1,19 @@
 {% extends "BroadviewCOSS/master.html" %}
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{% static "BroadviewCOSS/css/jquery.datetimepicker.min.css" %}">
+{% endblock css %}
 {% block content %}
     <div class="app-title">
         <div>
-            <h1><i class="fa fa-tasks fa-fw"></i> 任务管理</h1>
+            <h1><i class="fa fa-tasks fa-fw"></i> 作业管理</h1>
             <p></p>
             <p></p>
         </div>
         <ul class="app-breadcrumb breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a></li>
-            <li class="breadcrumb-item active"><i class="fa fa-tasks fa-lg fa-fw"></i> 任务管理</li>
+            <li class="breadcrumb-item"><a href="{% url 'BroadviewCOSS:index' %}"><i class="fa fa-home fa-lg fa-fw"></i></a>
+            </li>
+            <li class="breadcrumb-item active"><i class="fa fa-tasks fa-lg fa-fw"></i> 作业管理</li>
         </ul>
     </div>
     <div class="row">
@@ -26,41 +31,60 @@
                 <div class="tile-body">
                     <table class="table table-hover table-bordered content-table">
                         <thead>
-                            <tr>
-                                <th>任务名称</th>
-                                <th>影响的分类</th>
-                                <th>影响的主机</th>
-                                <th>最后修改时间</th>
-                                <th>创建人</th>
-                                <th>操作</th>
-                            </tr>
+                        <tr>
+                            <th>名称</th>
+                            <th>目标分类</th>
+                            <th>目标主机</th>
+                            <th>最后修改时间</th>
+                            <th>最后修改用户</th>
+                            <th>描述</th>
+                            <th>操作</th>
+                        </tr>
                         </thead>
                         <tbody>
-                        {% for t in tasks %}
+                        {% for id, value in tasks.items %}
                             <tr>
-                                <td>{{ t.name }}</td>
-                                <td>{{ t.category.name }}</td>
-                                <td>{{ t.mainframe.hostname }}</td>
-                                <td>{{ t.last_update }}</td>
-                                <td>{{ t.user.username }}</td>
+                                <td>{{ value.name }}</td>
                                 <td>
-                                    <a href="">
+                                    {% if value.category %}
+                                        {{ value.category | join:"," }}
+                                    {% else %}
+                                        /
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if value.mainframe %}
+                                        {{ value.mainframe | join:"," }}
+                                    {% else %}
+                                        /
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if value.last_update %}
+                                        {{ value.last_update | date:'Y-m-d H:i:s' }}
+                                    {% else %}
+                                        /
+                                    {% endif %}
+                                </td>
+                                <td>{{ value.user }}</td>
+                                <td>{{ value.desc | linebreaksbr }}</td>
+                                <td>
+                                    <a href="{% url "BroadviewCOSS:task-details" %}?t-id={{ id }}">
                                         <button class="btn btn-outline-primary btn-sm">
                                             <i class="fa fa-asterisk fa-fw"></i>详情
                                         </button>
                                     </a>
-                                    <a href="">
-                                        <button class="btn btn-outline-success btn-sm">
-                                            <i class="fa fa-caret-square-o-right fa-fw"></i>运行
-                                        </button>
-                                    </a>
-                                    <a href="{% url "BroadviewCOSS:update-task" %}?m-id={{ m.id }}">
+                                    <button type="button" class="btn btn-outline-success btn-sm" data-toggle="modal"
+                                            data-target="#t-modal" data-whatever="{{ id }}">
+                                        <i class="fa fa-caret-square-o-right fa-fw"></i>运行
+                                    </button>
+                                    <a href="{% url "BroadviewCOSS:update-task" %}?t-id={{ id }}">
                                         <button class="btn btn-outline-info btn-sm">
                                             <i class="fa fa-edit fa-fw"></i>修改
                                         </button>
                                     </a>
                                     <button class="btn btn-outline-danger btn-sm"
-                                            onclick="deleteObject('{% url "BroadviewCOSS:delete-task" %}', {{ m.id }});">
+                                            onclick="deleteObject('{% url "BroadviewCOSS:delete-task" %}', {{ id }});">
                                         <i class="fa fa-close fa-fw"></i>删除
                                     </button>
                                 </td>
@@ -73,3 +97,79 @@
         </div>
     </div>
 {% endblock content %}
+{% block modal %}
+    <div class="modal fade" id="t-modal" tabindex="-1" role="dialog"
+         aria-labelledby="t-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="t-modal-title">添加作业运行计划</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="taskrun-add-form">
+                        {% csrf_token %}
+                        <input title="id" name="t-id" id="t-id" hidden>
+                        <label for="datetimepicker" class="col-form-label">开始时间</label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="addon">
+                                    <i class="fa fa-calendar fa-fw"></i>
+                                </span>
+                            </div>
+                            <input class="form-control" id="datetimepicker" name="start-time"
+                                   aria-describedby="addon"
+                                   placeholder="请选择作业开始时间" readonly>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="taskRunAddSubmit();">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock modal %}
+{% block js %}
+    <script src="{% static "BroadviewCOSS/js/plugins/datetimepicker/jquery.datetimepicker.full.min.js" %}"></script>
+
+    <script type="text/javascript">
+        'use strict';
+
+        $('#t-modal').on('show.bs.modal', function (event) {
+            let id = $(event.relatedTarget).data('whatever');
+            $(this).find('input[id="t-id"]').val(id);
+        });
+
+        $.datetimepicker.setLocale('zh');
+        $('#datetimepicker').datetimepicker({
+            value: new Date(),
+            step: 5,
+            minTime: new Date(),
+            startDate: new Date()
+        });
+
+        function taskRunAddSubmit() {
+            let data = JSON.stringify($('#taskrun-add-form').serializeObject());
+            $.ajax({
+                url: "{% url "BroadviewCOSS:add-taskrun" %}",
+                type: "POST",
+                data: data,
+                success: function (data) {
+                    let dataObj = JSON.parse(data);
+                    swal({
+                        title: dataObj.message,
+                        type: dataObj.result ? "success" : "error",
+                        confirmButtonText: "确认",
+                    });
+                },
+                error: function (data) {
+                    console.log(data)
+                }
+            })
+        }
+    </script>
+{% endblock js %}

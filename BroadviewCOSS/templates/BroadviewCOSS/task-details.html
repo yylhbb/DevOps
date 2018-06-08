@@ -1,0 +1,152 @@
+{% extends "BroadviewCOSS/master.html" %}
+{% load static %}
+{% block content %}
+    <div class="app-title">
+        <div>
+            <h1><i class="fa fa-asterisk fa-fw"></i> 作业详情</h1>
+        </div>
+        <ul class="app-breadcrumb breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'BroadviewCOSS:index' %}">
+                    <i class="fa fa-home fa-lg fa-fw"></i>
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'BroadviewCOSS:task' %}">
+                    <i class="fa fa-tasks fa-lg fa-fw"></i> 作业管理
+                </a>
+            </li>
+            <li class="breadcrumb-item active">
+                <i class="fa fa-asterisk fa-lg fa-fw"></i> 作业详情
+            </li>
+        </ul>
+    </div>
+    <div class="tile mb-4">
+        <div class="page-header">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h4 class="mb-3 line-head">基本信息</h4>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <dl class="row">
+                    <dt class="col-md-1">名称</dt>
+                    <dd class="col-md-11">{{ task.name }}</dd>
+
+                    <dt class="col-md-1">目标分类</dt>
+                    <dd class="col-md-11">
+                        {% if task.categories %}
+                            {{ task.categories | join:"," }}
+                        {% else %}
+                            /
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-md-1">目标主机</dt>
+                    <dd class="col-md-11">
+                        {% if task.mainframes %}
+                            {{ task.mainframes | join:"," }}
+                        {% else %}
+                            /
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-md-1">创建时间</dt>
+                    <dd class="col-md-11">
+                        {% if task.create_date %}
+                            {{ task.create_date | date:'Y-m-d H:i:s' }}</dd>
+                        {% else %}
+                            /
+                        {% endif %}
+
+                    <dt class="col-md-1">最后修改时间</dt>
+                    <dd class="col-md-11">
+                        {% if task.last_update %}
+                            {{ task.last_update | date:'Y-m-d H:i:s' }}
+                        {% else %}
+                            /
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-md-1">最后修改用户</dt>
+                    <dd class="col-md-11">{{ task.user }}</dd>
+
+                    <dt class="col-md-1">内容</dt>
+                    <dd class="col-md-11">{{ task.task | linebreaksbr }}</dd>
+
+                    <dt class="col-md-1">描述</dt>
+                    <dd class="col-md-11">{{ task.description | linebreaksbr }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="tile mb-4">
+        <div class="page-header">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h4 class="mb-3 line-head">运行情况</h4>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <table class="table table-hover table-bordered content-table">
+                    <thead>
+                    <tr>
+                        <th>开始时间</th>
+                        <th>结束时间</th>
+                        <th>状态</th>
+                        <th>返回信息</th>
+                        <th>执行用户</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for tr in taskrun %}
+                        <tr>
+                            <td>
+                                {% if tr.start_time %}
+                                    {{ tr.start_time | date:'Y-m-d H:i:s' }}
+                                {% else %}
+                                    /
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if tr.end_time %}
+                                    {{ tr.end_time | date:'Y-m-d H:i:s' }}
+                                {% else %}
+                                    /
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if tr.status == 0 %}
+                                    <i class="fa fa-check fa-fw text-success"></i> 成功
+                                {% elif tr.status == 1 %}
+                                    <i class="fa fa-times fa-fw text-danger"></i> 失败
+                                {% else %}
+                                    <i class="fa fa-pause fa-fw text-danger"></i> 等待执行
+                                {% endif %}
+                            </td>
+                            <td>{{ tr.result }}</td>
+                            <td>{{ tr.user.username }}</td>
+                            <td>
+                                <a href="{% url "BroadviewCOSS:update-task" %}?t-id={{ id }}">
+                                    <button class="btn btn-outline-info btn-sm">
+                                        <i class="fa fa-edit fa-fw"></i>修改
+                                    </button>
+                                </a>
+                                <button class="btn btn-outline-danger btn-sm"
+                                        onclick="deleteObject('{% url "BroadviewCOSS:delete-task" %}', {{ id }});">
+                                    <i class="fa fa-close fa-fw"></i>删除
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

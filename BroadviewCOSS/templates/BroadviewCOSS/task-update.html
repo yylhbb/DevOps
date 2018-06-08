@@ -2,7 +2,7 @@
 {% block content %}
     <div class="app-title">
         <div>
-            <h1><i class="fa fa-plus fa-fw"></i> 添加作业</h1>
+            <h1><i class="fa fa-edit fa-fw"></i> 修改任务</h1>
         </div>
         <ul class="app-breadcrumb breadcrumb">
             <li class="breadcrumb-item">
@@ -12,20 +12,21 @@
             </li>
             <li class="breadcrumb-item">
                 <a href="{% url 'BroadviewCOSS:task' %}">
-                    <i class="fa fa-tasks fa-lg fa-fw"></i> 作业管理
+                    <i class="fa fa-tasks fa-lg fa-fw"></i> 任务管理
                 </a>
             </li>
             <li class="breadcrumb-item active">
-                <i class="fa fa-plus fa-lg fa-fw"></i> 添加作业
+                <i class="fa fa-edit fa-lg fa-fw"></i> 修改任务
             </li>
         </ul>
     </div>
     <div class="row">
         <div class="col-md-12">
             <div class="tile">
-                <form id="task-add-form">
+                <form id="task-update-form">
                     {% csrf_token %}
                     <div class="tile-body">
+                        <input type="text" value="{{ task.id }}" id="t-id" name="t-id" hidden>
                         <div class="form-group row">
                             <label for="t-name" class="control-label col-md-3">
                                 名称
@@ -33,7 +34,7 @@
                             </label>
                             <div class="col-md-9">
                                 <input type="text" class="form-control" id="t-name" name="t-name"
-                                       placeholder="请输入任务名称">
+                                       placeholder="请输入任务名称" value="{{ task.name }}">
                             </div>
                         </div>
                         <div class="form-group row">
@@ -41,10 +42,11 @@
                                 目标分类
                             </label>
                             <div class="col-md-9">
-                                <select class="form-control" id="t-category-add" name="t-category" multiple>
+                                <select class="form-control" id="t-category-update" name="t-category" multiple>
                                     <option value=""></option>
                                     {% for c in categories %}
-                                        <option value="{{ c.id }}">{{ c.name }}</option>
+                                        <option value="{{ c.id }}" {% if c.id in task.categories %}
+                                                selected {% endif %}>{{ c.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -54,10 +56,11 @@
                                 目标主机
                             </label>
                             <div class="col-md-9">
-                                <select class="form-control" id="t-mainframe-add" name="t-mainframe" multiple>
+                                <select class="form-control" id="t-mainframe-update" name="t-mainframe" multiple>
                                     <option value=""></option>
                                     {% for m in mainframes %}
-                                        <option value="{{ m.id }}">{{ m.hostname }}</option>
+                                        <option value="{{ m.id }}" {% if m.id in task.mainframes %}
+                                                selected {% endif %}>{{ m.hostname }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -69,7 +72,7 @@
                             </label>
                             <div class="col-md-9">
                                 <textarea class="form-control" id="t-task" name="t-task" rows="4"
-                                          placeholder="请输入任务内容"></textarea>
+                                          placeholder="请输入任务内容">{{ task.task }}</textarea>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -78,7 +81,7 @@
                             </label>
                             <div class="col-md-9">
                                 <textarea class="form-control" id="t-desc" name="t-desc" rows="4"
-                                          placeholder="请输入任务描述"></textarea>
+                                          placeholder="请输入任务描述">{{ task.desc }}</textarea>
                             </div>
                         </div>
                         <div class="form-group row"></div>
@@ -86,7 +89,7 @@
                     <div class="tile-footer">
                         <div class="row">
                             <div class="col-md-8 col-md-offset-3">
-                                <button class="btn btn-primary" type="button" onclick="taskAddSubmit();">
+                                <button class="btn btn-primary" type="button" onclick="taskUpdateSubmit();">
                                     <i class="fa fa-fw fa-lg fa-check-circle"></i>提交
                                 </button>
                                 <a class="btn btn-secondary" href="{% url "BroadviewCOSS:task" %}">
@@ -104,29 +107,29 @@
     <script type="text/javascript">
         'use strict';
 
-        let task_add_form = $("#task-add-form");
-        let t_category_add = $("#t-category-add");
-        let t_mainframe_add = $("#t-mainframe-add");
+        let task_update_form = $("#task-update-form");
+        let t_category_update = $("#t-category-update");
+        let t_mainframe_update = $("#t-mainframe-update");
 
-        t_category_add.select2({
+        t_category_update.select2({
             placeholder: '请选择',
             language: 'zh-CN'
         });
 
-        t_mainframe_add.select2({
+        t_mainframe_update.select2({
             placeholder: '请选择',
             language: 'zh-CN'
         });
 
-        t_category_add.change(function () {
+        t_category_update.change(function () {
             $(this).valid();
         });
 
-        t_mainframe_add.change(function () {
+        t_mainframe_update.change(function () {
             $(this).valid();
         });
 
-        let task_add_form_validate = task_add_form.validate({
+        let task_update_form_validate = task_update_form.validate({
             ignore: "",
             groups: {
                 target: "t-category t-mainframe"
@@ -138,6 +141,9 @@
                         url: "{% url "BroadviewCOSS:task-name-validate" %}",
                         type: "POST",
                         data: {
+                            "t-id": function () {
+                                return $("#t-id").val();
+                            },
                             "t-name": function () {
                                 return $("#t-name").val();
                             }
@@ -147,14 +153,14 @@
                 "t-category": {
                     required: {
                         depends: function () {
-                            return $("#t-mainframe-add").val().length <= 0;
+                            return $("#t-mainframe-update").val().length <= 0;
                         }
                     }
                 },
                 "t-mainframe": {
                     required: {
                         depends: function () {
-                            return $("#t-category-add").val().length <= 0;
+                            return $("#t-category-update").val().length <= 0;
                         }
                     }
                 },
@@ -190,11 +196,11 @@
             }
         });
 
-        function taskAddSubmit(){
-            if (task_add_form_validate.form()){
-                let data = JSON.stringify(task_add_form.serializeObject());
+        function taskUpdateSubmit() {
+            if (task_update_form_validate.form()) {
+                let data = JSON.stringify(task_update_form.serializeObject());
                 $.ajax({
-                    url: "{% url "BroadviewCOSS:add-task" %}",
+                    url: "{% url "BroadviewCOSS:update-task" %}",
                     type: "POST",
                     data: data,
                     success: function (data) {

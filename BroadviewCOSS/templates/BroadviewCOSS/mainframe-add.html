@@ -109,6 +109,10 @@
             language: 'zh-CN',
         });
 
+        mainframe_category_add.change(function () {
+            $(this).valid();
+        });
+
         let mainframe_add_form_validate = mainframe_add_form.validate({
             ignore: "",
             rules: {
