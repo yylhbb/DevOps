@@ -134,8 +134,6 @@
     </div>
 {% endblock modal %}
 {% block js %}
-    <script src="{% static "BroadviewCOSS/js/plugins/datetimepicker/jquery.datetimepicker.full.min.js" %}"></script>
-
     <script type="text/javascript">
         'use strict';
 
@@ -165,6 +163,7 @@
                         type: dataObj.result ? "success" : "error",
                         confirmButtonText: "确认",
                     });
+                    $('#t-modal').modal('hide');
                 },
                 error: function (data) {
                     console.log(data)

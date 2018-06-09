@@ -132,13 +132,14 @@
                             <td>{{ tr.result }}</td>
                             <td>{{ tr.user.username }}</td>
                             <td>
-                                <a href="{% url "BroadviewCOSS:update-task" %}?t-id={{ id }}">
-                                    <button class="btn btn-outline-info btn-sm">
-                                        <i class="fa fa-edit fa-fw"></i>修改
-                                    </button>
+                                <a href="{% url "BroadviewCOSS:update-taskrun" %}?tr-id={{ tr.id }}"
+                                   class="btn btn-outline-info btn-sm {% ifnotequal tr.status 1 %}
+                                   disabled  {% endifnotequal %}">
+                                    <i class="fa fa-edit fa-fw"></i>修改
                                 </a>
                                 <button class="btn btn-outline-danger btn-sm"
-                                        onclick="deleteObject('{% url "BroadviewCOSS:delete-task" %}', {{ id }});">
+                                        onclick="deleteObject('{% url "BroadviewCOSS:delete-task" %}', {{ tr.id }});"
+                                        {% ifnotequal tr.status 2 %} disabled {% endifnotequal %}>
                                     <i class="fa fa-close fa-fw"></i>删除
                                 </button>
                             </td>
