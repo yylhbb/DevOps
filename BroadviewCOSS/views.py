@@ -129,9 +129,9 @@ def mainframe_add(request):
                 if verify_permission(username, 'update'):
                     data = json.loads(request.body)
                     m_ip = data['m-ip']
-                    m_host = data['m-host']
-                    if not m_host:
-                        m_host = 9876
+                    m_type = data['m-type']
+                    if not m_type:
+                        m_type = 'Linux'
                     m_hostname = data['m-hostname']
                     m_category_id = data['m-category']
                     m_desc = data['m-desc']
@@ -140,7 +140,7 @@ def mainframe_add(request):
                         with transaction.atomic():
                             models.Mainframe.objects.create(
                                 ip=m_ip,
-                                host=m_host,
+                                type=m_type,
                                 hostname=m_hostname,
                                 status=2,
                                 category=models.Category.objects.get(id=m_category_id),
@@ -187,9 +187,9 @@ def mainframe_update(request):
                     data = json.loads(request.body)
                     m_id = data['m-id']
                     m_ip = data['m-ip']
-                    m_host = data['m-host']
-                    if not m_host:
-                        m_host = 9876
+                    m_type = data['m-type']
+                    if not m_type:
+                        m_type = 'Linux'
 
                     m_hostname = data['m-hostname']
                     m_category_id = data['m-category']
@@ -199,7 +199,7 @@ def mainframe_update(request):
                         with transaction.atomic():
                             m = models.Mainframe.objects.get(id=m_id)
                             m.ip = m_ip
-                            m.host = m_host
+                            m.type = m_type
                             m.hostname = m_hostname
                             m.description = m_desc
                             m.category = models.Category.objects.get(id=m_category_id)
@@ -817,7 +817,43 @@ def taskrun_update(request):
     if username:
         menus = get_menus(username)
         if verify_menus(menus, 'task'):
-            pass
+            if request.method == 'POST':
+                if verify_permission(username, 'update'):
+                    data = json.loads(request.body)
+                    tr_id = data['tr-id']
+                    start_time = data['start-time']
+
+                    try:
+                        with transaction.atomic():
+                            tr = models.TaskRun.objects.get(id=tr_id)
+
+                            if tr.status == 2:
+                                tr.start_time = datetime.datetime.strptime(start_time, '%Y/%m/%d %H:%M')
+                                tr.user = get_user(username)
+                                tr.save()
+
+                                context = {
+                                    'result': True,
+                                    'message': '修改作业计划成功'
+                                }
+                            else:
+                                context = {
+                                    'result': False,
+                                    'message': '暂不能修改该作业计划'
+                                }
+                    except (ValueError, IntegrityError, AttributeError, Exception):
+                        context = {
+                            'result': False,
+                            'message': '修改作业计划失败'
+                        }
+                else:
+                    context = {
+                        'result': False,
+                        'message': '权限不足'
+                    }
+                return HttpResponse(json.dumps(context))
+            else:
+                return HttpResponseRedirect('/task')
         else:
             raise PermissionDenied
     else:
@@ -830,7 +866,40 @@ def taskrun_delete(request):
     if username:
         menus = get_menus(username)
         if verify_menus(menus, 'task'):
-            pass
+            if request.method == 'POST':
+                if verify_permission(username, 'delete'):
+                    data = json.loads(request.body)
+                    tr_id = data['id']
+
+                    try:
+                        with transaction.atomic():
+                            tr = models.TaskRun.objects.get(id=tr_id)
+                            if tr.status == 2:
+                                tr.delete()
+
+                                context = {
+                                    'result': True,
+                                    'message': '作业计划删除成功'
+                                }
+                            else:
+                                context = {
+                                    'result': False,
+                                    'message': '该作业计划不允许删除'
+                                }
+
+                    except (ValueError, IntegrityError, AttributeError, Exception):
+                        context = {
+                            'result': False,
+                            'message': '作业计划删除失败'
+                        }
+                else:
+                    context = {
+                        'result': False,
+                        'message': '权限不足'
+                    }
+                return HttpResponse(json.dumps(context))
+            else:
+                return HttpResponseRedirect('/task')
         else:
             raise PermissionDenied
     else:

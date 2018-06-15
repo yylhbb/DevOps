@@ -97,7 +97,7 @@ class Mainframe(models.Model):
         (2, '未知')
     )
     ip = models.GenericIPAddressField()
-    host = models.PositiveIntegerField(default=9876)
+    type = models.CharField(default='Linux', max_length=30)
     hostname = models.CharField(max_length=30)
     category = models.ForeignKey(Category, default=0, db_column='category', on_delete=models.SET_DEFAULT, )
     status = models.PositiveIntegerField(default=0, choices=STATUS_CHOICE)
@@ -139,9 +139,10 @@ class TaskMainframe(models.Model):
 
 class TaskRun(models.Model):
     TASK_RUN_STATUS = (
-        ('0', '成功'),
-        ('1', '失败'),
-        ('2', '等待执行')
+        (0, '成功'),
+        (1, '失败'),
+        (2, '等待执行'),
+        (3, '正在执行')
     )
     task = models.ForeignKey(Task, db_column='task', on_delete=models.CASCADE, )
     start_time = models.DateTimeField()

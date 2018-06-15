@@ -125,20 +125,22 @@
                                     <i class="fa fa-check fa-fw text-success"></i> 成功
                                 {% elif tr.status == 1 %}
                                     <i class="fa fa-times fa-fw text-danger"></i> 失败
+                                {% elif tr.status == 2 %}
+                                    <i class="fa fa-pause fa-fw text-warning"></i> 等待执行
                                 {% else %}
-                                    <i class="fa fa-pause fa-fw text-danger"></i> 等待执行
+                                    <i class="fa fa-caret-square-o-right fa-fw text-primary"></i> 正在执行
                                 {% endif %}
                             </td>
-                            <td>{{ tr.result }}</td>
+                            <td>{{ tr.result | linebreaksbr }}</td>
                             <td>{{ tr.user.username }}</td>
                             <td>
-                                <a href="{% url "BroadviewCOSS:update-taskrun" %}?tr-id={{ tr.id }}"
-                                   class="btn btn-outline-info btn-sm {% ifnotequal tr.status 1 %}
-                                   disabled  {% endifnotequal %}">
+                                <button class="btn btn-outline-info btn-sm " data-toggle="modal"
+                                        data-target="#tr-modal" data-whatever="{{ tr.id }}"
+                                        {% ifnotequal tr.status 2 %} disabled  {% endifnotequal %}>
                                     <i class="fa fa-edit fa-fw"></i>修改
-                                </a>
+                                </button>
                                 <button class="btn btn-outline-danger btn-sm"
-                                        onclick="deleteObject('{% url "BroadviewCOSS:delete-task" %}', {{ tr.id }});"
+                                        onclick="deleteObject('{% url "BroadviewCOSS:delete-taskrun" %}', {{ tr.id }});"
                                         {% ifnotequal tr.status 2 %} disabled {% endifnotequal %}>
                                     <i class="fa fa-close fa-fw"></i>删除
                                 </button>
@@ -151,3 +153,82 @@
         </div>
     </div>
 {% endblock content %}
+{% block modal %}
+    <div class="modal fade" id="tr-modal" tabindex="-1" role="dialog"
+         aria-labelledby="tr-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tr-modal-title">添加作业运行计划</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="taskrun-update-form">
+                        {% csrf_token %}
+                        <input title="id" name="tr-id" id="tr-id" hidden>
+                        <label for="datetimepicker" class="col-form-label">开始时间</label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="add-on">
+                                    <i class="fa fa-calendar fa-fw"></i>
+                                </span>
+                            </div>
+                            <input class="form-control" id="start-time-update" name="start-time"
+                                   aria-describedby="add-on"
+                                   placeholder="请选择作业开始时间" readonly>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="taskRunUpdateSubmit();">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock modal %}
+{% block js %}
+    <script type="text/javascript">
+        'use strict';
+
+        $('#tr-modal').on('show.bs.modal', function (event) {
+            let id = $(event.relatedTarget).data('whatever');
+            $(this).find('input[id="tr-id"]').val(id);
+        });
+
+        $.datetimepicker.setLocale('zh');
+        $('#start-time-update').datetimepicker({
+            value: new Date(),
+            step: 5,
+            minTime: new Date(),
+            startDate: new Date()
+        });
+
+        function taskRunUpdateSubmit() {
+            let data = JSON.stringify($('#taskrun-update-form').serializeObject());
+            $.ajax({
+                url: "{% url "BroadviewCOSS:update-taskrun" %}",
+                type: "POST",
+                data: data,
+                success: function (data) {
+                    let dataObj = JSON.parse(data);
+                    swal({
+                        title: dataObj.message,
+                        type: dataObj.result ? "success" : "error",
+                        confirmButtonText: "确认",
+                    }, function () {
+                        if (this.type === "success") {
+                            $('#tr-modal').modal('hide');
+                            location.reload();
+                        }
+                    });
+                },
+                error: function (data) {
+                    console.log(data)
+                }
+            })
+        }
+    </script>
+{% endblock js %}

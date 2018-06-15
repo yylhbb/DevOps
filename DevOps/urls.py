@@ -14,14 +14,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
 from BroadviewCOSS import views
+from django.contrib import admin
 
 urlpatterns = [
+    path('admin', admin.site.urls),
     path('', include('BroadviewCOSS.urls'))
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
 
-handler404 = 'BroadviewCOSS.views.page_not_found'
+handler404 = views.page_not_found
 handler403 = views.permission_denied
 handler500 = views.page_error

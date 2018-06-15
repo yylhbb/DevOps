@@ -30,7 +30,7 @@
                             <tr>
                                 <th>主机名称</th>
                                 <th>IP</th>
-                                <th>端口</th>
+                                <th>主机系统</th>
                                 <th>状态</th>
                                 <th>分类</th>
                                 <th>描述</th>
@@ -42,7 +42,7 @@
                             <tr>
                                 <td>{{ m.hostname }}</td>
                                 <td>{{ m.ip }}</td>
-                                <td>{{ m.host }}</td>
+                                <td>{{ m.type }}</td>
                                 <td>
                                     {% if m.status == 0 %}
                                         <i class="fa fa-check-circle fa-fw text-success"></i>正常

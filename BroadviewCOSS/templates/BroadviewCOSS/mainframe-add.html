@@ -42,12 +42,16 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="m-host" class="control-label col-md-3">
-                                端口号
+                            <label for="m-type" class="control-label col-md-3">
+                                主机系统
+                                <sup><span style="color:red">*</span></sup>
                             </label>
                             <div class="col-md-9">
-                                <input type="text" class="form-control" id="m-host" name="m-host"
-                                       placeholder="请输入端口号">
+                                <select class="form-control" id="m-type-add" name="m-type">
+                                    <option value=""></option>
+                                    <option value="Windows">Windows</option>
+                                    <option value="Linux">Linux</option>
+                                </select>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -97,16 +101,22 @@
             return this.optional(element) || /^(([1-9]|([1-9]\d)|(1\d\d)|(2([0-4]\d|5[0-5])))\.)(([1-9]|([1-9]\d)|(1\d\d)|(2([0-4]\d|5[0-5])))\.){2}([1-9]|([1-9]\d)|(1\d\d)|(2([0-4]\d|5[0-5])))$/.test(value);
         }, "请填写正确的 IP 地址");
 
-        $.validator.addMethod('host', function (value, element) {
-            return this.optional(element) || (/^[-+]?\d+$/.test(value) && parseInt(value)>=0);
-        }, "请填写正确的端口号");
-
         let mainframe_add_form = $('#mainframe-add-form');
+        let mainframe_type_add = $('#m-type-add');
         let mainframe_category_add = $('#m-category-add');
+
+        mainframe_type_add.select2({
+            placeholder: '请选择',
+            language: 'zh-CN',
+        });
 
         mainframe_category_add.select2({
             placeholder: '请选择',
             language: 'zh-CN',
+        });
+
+        mainframe_type_add.change(function () {
+            $(this).valid();
         });
 
         mainframe_category_add.change(function () {
@@ -129,8 +139,8 @@
                         }
                     }
                 },
-                "m-host": {
-                   host: true
+                "m-type": {
+                    required: true
                 },
                 "m-hostname": {
                     required: true
@@ -143,6 +153,9 @@
                 "m-ip": {
                     required: "请输入 IP 地址",
                     remote: "IP 已存在，请重新输入"
+                },
+                "m-type": {
+                    required: "请选择主机系统"
                 },
                 "m-hostname": {
                     required: "请输入主机名称"

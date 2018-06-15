@@ -1,8 +1,5 @@
 {% extends "BroadviewCOSS/master.html" %}
 {% load static %}
-{% block css %}
-    <link rel="stylesheet" type="text/css" href="{% static "BroadviewCOSS/css/jquery.datetimepicker.min.css" %}">
-{% endblock css %}
 {% block content %}
     <div class="app-title">
         <div>
@@ -119,7 +116,7 @@
                                     <i class="fa fa-calendar fa-fw"></i>
                                 </span>
                             </div>
-                            <input class="form-control" id="datetimepicker" name="start-time"
+                            <input class="form-control" id="start-time-add" name="start-time"
                                    aria-describedby="addon"
                                    placeholder="请选择作业开始时间" readonly>
                         </div>
@@ -143,7 +140,7 @@
         });
 
         $.datetimepicker.setLocale('zh');
-        $('#datetimepicker').datetimepicker({
+        $('#start-time-add').datetimepicker({
             value: new Date(),
             step: 5,
             minTime: new Date(),
@@ -162,8 +159,12 @@
                         title: dataObj.message,
                         type: dataObj.result ? "success" : "error",
                         confirmButtonText: "确认",
+                    }, function () {
+                        if (this.type === "success") {
+                            $('#t-modal').modal('hide');
+                        }
                     });
-                    $('#t-modal').modal('hide');
+
                 },
                 error: function (data) {
                     console.log(data)
