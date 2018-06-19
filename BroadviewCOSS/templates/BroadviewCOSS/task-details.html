@@ -122,9 +122,9 @@
                             </td>
                             <td>
                                 {% if tr.status == 0 %}
-                                    <i class="fa fa-check fa-fw text-success"></i> 成功
+                                    <i class="fa fa-check fa-fw text-success"></i> 运行完毕
                                 {% elif tr.status == 1 %}
-                                    <i class="fa fa-times fa-fw text-danger"></i> 失败
+                                    <i class="fa fa-times fa-fw text-danger"></i> 运行错误
                                 {% elif tr.status == 2 %}
                                     <i class="fa fa-pause fa-fw text-warning"></i> 等待执行
                                 {% else %}
