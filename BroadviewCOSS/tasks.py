@@ -56,7 +56,7 @@ def success(result, ip, tr_id):
     tr = models.TaskRun.objects.get(id=tr_id)
 
     old_result = tr.result
-    result = '\r\n任务在 ' + ip + ' 上运行成功：\r\n' + result
+    result = '\r\n任务在 ' + ip + ' 上运行完毕：\r\n' + result
 
     tr.result = (old_result + result).strip('\r\n')
     tr.status = 0
