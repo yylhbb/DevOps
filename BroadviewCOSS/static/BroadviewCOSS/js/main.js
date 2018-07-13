@@ -93,6 +93,8 @@
     });*/
 })();
 
+'use strict';
+
 function getCookie(name) {
     let arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
 
